@@ -1,2 +1,74 @@
 # PCE-NMF
-MATLAB implementation of PCE-NMF
+
+MATLAB R2019a implementation and reproducibility materials for **Propagated
+Class-Exclusion Non-negative Matrix Factorization (PCE-NMF)**.
+
+PCE-NMF propagates partial class evidence through a sample graph, converts the
+evidence into class-incompatibility weights, and suppresses incompatible
+rank-one reconstruction contributions. The same scale-invariant contribution
+energies provide the final class assignment.
+
+## Repository contents
+
+- `code/pce_nmf.m`: core PCE-NMF solver.
+- `code/demo_synthetic.m`: self-contained smoke test with synthetic data.
+- `docs/PROTOCOL.md`: locked experimental protocol and parameters.
+- `docs/DATASETS.md`: expected data format and official dataset sources.
+- `docs/THIRD_PARTY_METHODS.md`: baseline provenance and release boundary.
+- `results/`: compact tables underlying the main comparisons and analyses.
+- `figures/`: selected paper figures.
+- `paper/PCE-NMF.pdf`: current manuscript PDF.
+
+The benchmark datasets and third-party baseline implementations are not
+redistributed in this repository.
+
+## Quick start
+
+1. Open MATLAB R2019a or later.
+2. Set the current folder to the repository root.
+3. Run:
+
+```matlab
+addpath('code');
+demo_synthetic;
+```
+
+The demo constructs a non-negative three-class dataset, selects 10% labeled
+samples per class, runs PCE-NMF, and prints accuracy on the unlabeled samples.
+No toolbox is required for the core solver or the demo.
+
+## Core call
+
+```matlab
+[pred, model] = pce_nmf(X, y, labeled, opts);
+```
+
+- `X`: non-negative `m x n` matrix; samples are columns.
+- `y`: `n x 1` class labels encoded as consecutive integers `1,...,c`.
+- `labeled`: `n x 1` logical vector indicating labeled samples.
+- `opts`: options structure; see `help pce_nmf`.
+- `pred`: direct class assignments for all samples.
+- `model`: learned factors, propagated evidence, exclusion weights, scores,
+  objective history, and runtime.
+
+For the paper protocol, normalize every sample to unit Euclidean norm before
+calling the solver. The formal setting uses 50 iterations, `lambda = 100`, and
+dataset-specific neighborhood sizes listed in `docs/PROTOCOL.md`.
+
+## Reproducibility scope
+
+The CSV files contain the retained numerical records used for the manuscript
+tables and figures. They are provided for verification and downstream
+analysis. Full reruns require users to obtain the datasets from their original
+providers and prepare the matrices described in `docs/DATASETS.md`.
+
+## Citation
+
+Citation metadata are provided in `CITATION.cff`. Please cite the associated
+paper when using this implementation.
+
+## License
+
+The original PCE-NMF code in `code/` is released under the MIT License. Dataset
+files and third-party methods retain their original terms and are not covered
+by this repository's MIT License.

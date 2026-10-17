@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the associated PCE-NMF paper."
+title: "PCE-NMF: Propagated class-exclusion non-negative matrix factorization"
+type: software
+authors:
+  - family-names: Sun
+    given-names: Deshu
+  - family-names: Wang
+    given-names: Feng
+repository-code: "https://github.com/matrix-research-lab-Wf/PCE-NMF"
+license: MIT
