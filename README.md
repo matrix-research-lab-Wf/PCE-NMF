@@ -15,8 +15,8 @@ energies provide the final class assignment.
 - `docs/PROTOCOL.md`: locked experimental protocol and parameters.
 - `docs/DATASETS.md`: expected data format and official dataset sources.
 - `docs/THIRD_PARTY_METHODS.md`: baseline provenance and release boundary.
-- `results/`: compact tables underlying the main comparisons and analyses.
-- `figures/`: selected paper figures.
+- `results/`: compact tables from the independent-test comparison and supporting analyses.
+- `figures/`: selected current paper figures.
 - `paper/PCE-NMF.pdf`: current manuscript PDF.
 
 The benchmark datasets and third-party baseline implementations are not
@@ -58,9 +58,11 @@ dataset-specific neighborhood sizes listed in `docs/PROTOCOL.md`.
 ## Reproducibility scope
 
 The CSV files contain the retained numerical records used for the manuscript
-tables and figures. They are provided for verification and downstream
-analysis. Full reruns require users to obtain the datasets from their original
-providers and prepare the matrices described in `docs/DATASETS.md`.
+tables and figures. The primary comparison uses 20 independent test seeds and
+eight methods. Development seeds used for sensitivity analysis are kept
+separate from the independent-test records. Full reruns require users to obtain
+the datasets from their original providers and prepare the matrices described
+in `docs/DATASETS.md`.
 
 ## Citation
 
