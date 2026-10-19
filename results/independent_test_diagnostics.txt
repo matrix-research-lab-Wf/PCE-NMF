@@ -3,3 +3,5 @@ Rows: 960 = 6 datasets x 20 seeds x 8 methods.
 Seeds: 20260627:20260646. Development seeds excluded.
 Nonfinite ACC/NMI: 0. Failed runs: 0.
 Canonical released raw source: results/independent_test_raw.csv
+PCE objective/coverage diagnostics: 120/120 finite.
+PCE and LCNMF labeled support violation: 0.

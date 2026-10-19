@@ -30,6 +30,12 @@ for d=1:numel(datasets)
         end
     end
 end
+zp=strcmp(T.method,'PCE_NMF'); zl=strcmp(T.method,'LCNMF');
+if any(~isfinite(T.objective_monotone(zp))) || ...
+        any(~isfinite(T.anchor_coverage(zp))) || ...
+        any(T.support_violation(zp)~=0) || any(T.support_violation(zl)~=0)
+    issues{end+1}='PCE/LCNMF diagnostic integrity';
+end
 if ~isempty(issues), error('INDEPENDENT20_INTEGRITY_FAIL: %s',strjoin(issues,'; ')); end
 writetable(T,fullfile(out_dir,'raw.csv'));
 
@@ -85,6 +91,8 @@ fprintf(fid,'Rows: 960 = 6 datasets x 20 seeds x 8 methods.\n');
 fprintf(fid,'Seeds: 20260627:20260646. Development seeds excluded.\n');
 fprintf(fid,'Nonfinite ACC/NMI: 0. Failed runs: 0.\n');
 fprintf(fid,'Canonical released raw source: results/independent_test_raw.csv\n');
+fprintf(fid,'PCE objective/coverage diagnostics: 120/120 finite.\n');
+fprintf(fid,'PCE and LCNMF labeled support violation: 0.\n');
 fclose(fid);
 fprintf('INDEPENDENT20_PASS rows=%d output=%s\n',height(T),out_dir);
 end
