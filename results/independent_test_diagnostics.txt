@@ -1,0 +1,5 @@
+PCE-NMF independent 20-seed test integrity: PASS
+Rows: 960 = 6 datasets x 20 seeds x 8 methods.
+Seeds: 20260627:20260646. Development seeds excluded.
+Nonfinite ACC/NMI: 0. Failed runs: 0.
+Canonical released raw source: results/independent_test_raw.csv

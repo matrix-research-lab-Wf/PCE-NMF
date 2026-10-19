@@ -21,6 +21,11 @@
   `[2, 2, 4, 3, 3, 2]`.
 - Direct score: `||u_k||_2^2 * v_ik^2`.
 
+The PCE-NMF values of `lambda` and `p` for YaleB, COIL20, and COIL100 were
+selected on the 10 development seeds. The values of `p` for Optdigits, ORL,
+and PIE were retained from the initial locked protocol and were not selected
+from the independent test results.
+
 ## Compared methods and native decisions
 
 - Methods: NMF, CNMF, GNMFLD, EDNMF (ERDNMF), LCNMF, GOCNMF, SNMFWLP,
@@ -30,6 +35,9 @@
 - PCE-NMF: maximum scale-invariant contribution energy.
 - Primary ACC uses an evaluation-only optimal permutation of the native
   predictions. NMI is permutation invariant.
+- Paired PCE-minus-baseline tests use a two-sided exact Wilcoxon signed-rank
+  test. Holm correction is applied separately within each baseline family of
+  12 comparisons (six datasets by two metrics).
 
 ## Result files
 

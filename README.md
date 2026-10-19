@@ -15,9 +15,11 @@ energies provide the final class assignment.
 - `docs/PROTOCOL.md`: locked experimental protocol and parameters.
 - `docs/DATASETS.md`: expected data format and official dataset sources.
 - `docs/THIRD_PARTY_METHODS.md`: baseline provenance and release boundary.
+- `docs/PARAMETER_PROVENANCE.md`: locked settings and selection provenance.
 - `results/`: compact tables from the independent-test comparison and supporting analyses.
 - `figures/`: selected current paper figures.
 - `paper/PCE-NMF.pdf`: current manuscript PDF.
+- `experiments/`: MATLAB R2019a protocol, aggregation, audit, and plotting scripts.
 
 The benchmark datasets and third-party baseline implementations are not
 redistributed in this repository.
@@ -63,6 +65,20 @@ eight methods. Development seeds used for sensitivity analysis are kept
 separate from the independent-test records. Full reruns require users to obtain
 the datasets from their original providers and prepare the matrices described
 in `docs/DATASETS.md`.
+
+`results/independent_test_raw.csv` contains all 960 method--data-set--seed
+records used for the primary comparison. Third-party source files are not
+redistributed. The required adapter contract, verified source revisions, and
+release boundary are documented under `experiments/adapters/` and
+`docs/THIRD_PARTY_METHODS.md`.
+
+To verify the 960-row integrity gate and regenerate the summary, pairwise,
+diagnostic, and LaTeX outputs from the released raw records, run:
+
+```matlab
+addpath('experiments');
+assemble_independent_formal20_R2019a;
+```
 
 ## Citation
 

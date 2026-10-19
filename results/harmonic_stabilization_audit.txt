@@ -1,0 +1,6 @@
+trials=120
+max_abs_Q_difference=2.5322077767953E-11
+min_prediction_agreement=1
+max_abs_ACC_difference=0
+max_abs_NMI_difference=0
+all_predictions_identical=1

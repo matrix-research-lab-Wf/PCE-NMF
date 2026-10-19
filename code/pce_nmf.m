@@ -13,6 +13,11 @@ validate_inputs(X,y,labeled,opts);
 
 X = double(X); y = double(y(:)); labeled = logical(labeled(:));
 [m,n] = size(X); c = max(y); small = 1e-12;
+col_norms=sqrt(sum(X.^2,1)); nz=col_norms>small;
+if any(abs(col_norms(nz)-1)>1e-8)
+    error('PCE:Normalization', ...
+        'Nonzero sample columns must have unit Euclidean norm.');
+end
 if isfield(opts,'W0') && ~isempty(opts.W0)
     U = max(double(opts.W0),small);
 else
@@ -32,11 +37,16 @@ S = binary_knn_graph(X,opts.graph_p);
 P = harmonic_evidence(S,labeled,y,c,small);
 anchored = sum(P,2)>0;
 Q = bsxfun(@times,double(anchored),1-P);
-L = find(labeled); Q(L,:) = 1;
-Q(sub2ind([n c],L,y(L))) = 0;
+L = find(labeled); Q(L,:) = 0;
 V(L,:) = V(L,:).*(1-Q(L,:));
 
-objective = zeros(opts.max_iter,1);
+% Hard labeled-support zeros are represented by a separate mask.
+hard_zero=false(n,c); hard_zero(L,:)=true;
+hard_zero(sub2ind([n c],L,y(L)))=false;
+V(hard_zero)=0;
+
+objective = zeros(opts.max_iter+1,1);
+objective(1)=objective_value(X,U,V,Q,opts.lambda);
 for it=1:opts.max_iter
     b = sum(Q.*(V.^2),1)';
     denU = U*(V'*V)+opts.lambda*bsxfun(@times,U,b');
@@ -45,17 +55,24 @@ for it=1:opts.max_iter
     penaltyV = Q.*V.*bsxfun(@times,ones(n,1),a);
     denV = V*(U'*U)+opts.lambda*penaltyV;
     V = max(V.*((X'*U)./max(denV,small)),small);
-    V(L,:) = V(L,:).*(1-Q(L,:));
-    R = X-U*V';
-    E = Q.*(V.^2).*bsxfun(@times,ones(n,1),sum(U.^2,1));
-    objective(it) = sum(R(:).^2)+opts.lambda*sum(E(:));
+    V(hard_zero)=0;
+    objective(it+1)=objective_value(X,U,V,Q,opts.lambda);
 end
 
 score = bsxfun(@times,V.^2,sum(U.^2,1));
 [~,pred] = max(score,[],2);
 model.U=U; model.V=V; model.P=P; model.Q=Q; model.graph=S;
 model.score=score; model.objective=objective;
+tol=1e-10*max(1,max(abs(objective(1:end-1))));
+model.max_objective_increase=max(diff(objective));
+model.monotone_with_tolerance=all(diff(objective)<=tol);
 model.runtime_sec=toc(t0); model.options=opts;
+end
+
+function f=objective_value(X,U,V,Q,lambda)
+R=X-U*V';
+E=Q.*(V.^2).*bsxfun(@times,ones(size(V,1),1),sum(U.^2,1));
+f=sum(R(:).^2)+lambda*sum(E(:));
 end
 
 function validate_inputs(X,y,labeled,opts)
