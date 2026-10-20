@@ -9,8 +9,10 @@
 *.synctex.gz
 *.mat
 data/
+third_party/
 results/local/
 results/smoke/
+results/hlpnmf/rerun/
 slprj/
 codegen/
 .DS_Store

@@ -1,0 +1,5 @@
+dataset,author_n,author_d,protocol_n,protocol_d,normalized_max_abs_difference,labels_equal
+YaleB,2414,1024,2414,1024,0,1
+COIL20,1440,1024,1440,1024,0,1
+PIE,2856,1024,2856,1024,0,1
+COIL100,7200,1024,7200,1024,0,1
