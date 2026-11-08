@@ -1,0 +1,91 @@
+dataset,method,max_iter,graph_p,alpha,beta,lambda,hop_k,parameter_tag,native_prediction,source_id
+YaleB,NMF,200,NaN,NaN,NaN,NaN,NaN,protocol-200iter,50-start K-means,Lee-Seung Euclidean MU
+YaleB,CNMF,200,NaN,NaN,NaN,NaN,NaN,source-aligned-200iter,50-start K-means,audited local CNMF
+YaleB,GNMFLD,200,5,1000,50,NaN,NaN,aligned-prelocked-not-published-optimum,row-wise class-coordinate maximum,audited GNMFLD adapter
+YaleB,EDNMF,200,NaN,10,NaN,NaN,NaN,source-Yale,author row-wise class decision,ERDNMF f2fd73ad
+YaleB,LCNMF,200,NaN,NaN,NaN,NaN,NaN,author-no-tuned-parameter,row-wise class-coordinate maximum,LCNMF 7a53ca76
+YaleB,GOCNMF,50,3,1000,NaN,NaN,NaN,transferred-PIE,row-wise one-hot-coordinate maximum,GOCNMF 1ecd7ab0 author table
+YaleB,SNMFWLP,50,3,1000,100000,NaN,NaN,source-alpha-beta_p-prelocked-transfer,50-start K-means,SNMFWLP1 538dcfee
+YaleB,HLPNMF,30,2,1000,NaN,NaN,3,source-YaleB,row-wise class-coordinate maximum,HLPNMF author repository
+YaleB,PCE_NMF,50,2,NaN,NaN,100,NaN,labeled-only-development,scale-invariant contribution-energy maximum,fixed PCE objective
+COIL20,NMF,200,NaN,NaN,NaN,NaN,NaN,protocol-200iter,50-start K-means,Lee-Seung Euclidean MU
+COIL20,CNMF,200,NaN,NaN,NaN,NaN,NaN,source-aligned-200iter,50-start K-means,audited local CNMF
+COIL20,GNMFLD,200,5,800,200,NaN,NaN,aligned-prelocked-not-published-optimum,row-wise class-coordinate maximum,audited GNMFLD adapter
+COIL20,EDNMF,200,NaN,800,NaN,NaN,NaN,source-COIL20,author row-wise class decision,ERDNMF f2fd73ad
+COIL20,LCNMF,200,NaN,NaN,NaN,NaN,NaN,author-no-tuned-parameter,row-wise class-coordinate maximum,LCNMF 7a53ca76
+COIL20,GOCNMF,50,2,100,NaN,NaN,NaN,source-COIL20,row-wise one-hot-coordinate maximum,GOCNMF 1ecd7ab0 author table
+COIL20,SNMFWLP,50,3,1000,100000,NaN,NaN,source-alpha-beta_p-prelocked-transfer,50-start K-means,SNMFWLP1 538dcfee
+COIL20,HLPNMF,30,2,1000,NaN,NaN,3,source-COIL20,row-wise class-coordinate maximum,HLPNMF author repository
+COIL20,PCE_NMF,50,2,NaN,NaN,100,NaN,labeled-only-development,scale-invariant contribution-energy maximum,fixed PCE objective
+Optdigits,NMF,200,NaN,NaN,NaN,NaN,NaN,protocol-200iter,50-start K-means,Lee-Seung Euclidean MU
+Optdigits,CNMF,200,NaN,NaN,NaN,NaN,NaN,source-aligned-200iter,50-start K-means,audited local CNMF
+Optdigits,GNMFLD,200,5,600,100,NaN,NaN,aligned-prelocked-not-published-optimum,row-wise class-coordinate maximum,audited GNMFLD adapter
+Optdigits,EDNMF,200,NaN,600,NaN,NaN,NaN,source-Optdigits,author row-wise class decision,ERDNMF f2fd73ad
+Optdigits,LCNMF,200,NaN,NaN,NaN,NaN,NaN,author-no-tuned-parameter,row-wise class-coordinate maximum,LCNMF 7a53ca76
+Optdigits,GOCNMF,50,5,100,NaN,NaN,NaN,source-Optdigits,row-wise one-hot-coordinate maximum,GOCNMF 1ecd7ab0 author table
+Optdigits,SNMFWLP,50,4,1000,100000,NaN,NaN,source-alpha-beta_p-prelocked-transfer,50-start K-means,SNMFWLP1 538dcfee
+Optdigits,HLPNMF,30,5,1000,NaN,NaN,1,transferred-MNIST,row-wise class-coordinate maximum,HLPNMF author repository
+Optdigits,PCE_NMF,50,3,NaN,NaN,100,NaN,labeled-only-development,scale-invariant contribution-energy maximum,fixed PCE objective
+ORL,NMF,200,NaN,NaN,NaN,NaN,NaN,protocol-200iter,50-start K-means,Lee-Seung Euclidean MU
+ORL,CNMF,200,NaN,NaN,NaN,NaN,NaN,source-aligned-200iter,50-start K-means,audited local CNMF
+ORL,GNMFLD,200,5,400,10,NaN,NaN,aligned-prelocked-not-published-optimum,row-wise class-coordinate maximum,audited GNMFLD adapter
+ORL,EDNMF,200,NaN,10,NaN,NaN,NaN,transferred-Yale,author row-wise class decision,ERDNMF f2fd73ad
+ORL,LCNMF,200,NaN,NaN,NaN,NaN,NaN,author-no-tuned-parameter,row-wise class-coordinate maximum,LCNMF 7a53ca76
+ORL,GOCNMF,50,3,100,NaN,NaN,NaN,transferred-UMIST,row-wise one-hot-coordinate maximum,GOCNMF 1ecd7ab0 author table
+ORL,SNMFWLP,50,3,1000,100000,NaN,NaN,source-alpha-beta_p-prelocked-transfer,50-start K-means,SNMFWLP1 538dcfee
+ORL,HLPNMF,30,2,1000,NaN,NaN,3,transferred-YaleB,row-wise class-coordinate maximum,HLPNMF author repository
+ORL,PCE_NMF,50,3,NaN,NaN,100,NaN,transferred-face-development,scale-invariant contribution-energy maximum,fixed PCE objective
+PIE,NMF,200,NaN,NaN,NaN,NaN,NaN,protocol-200iter,50-start K-means,Lee-Seung Euclidean MU
+PIE,CNMF,200,NaN,NaN,NaN,NaN,NaN,source-aligned-200iter,50-start K-means,audited local CNMF
+PIE,GNMFLD,200,5,1000,50,NaN,NaN,aligned-prelocked-not-published-optimum,row-wise class-coordinate maximum,audited GNMFLD adapter
+PIE,EDNMF,200,NaN,400,NaN,NaN,NaN,source-PIE,author row-wise class decision,ERDNMF f2fd73ad
+PIE,LCNMF,200,NaN,NaN,NaN,NaN,NaN,author-no-tuned-parameter,row-wise class-coordinate maximum,LCNMF 7a53ca76
+PIE,GOCNMF,50,3,1000,NaN,NaN,NaN,source-PIE,row-wise one-hot-coordinate maximum,GOCNMF 1ecd7ab0 author table
+PIE,SNMFWLP,50,3,1000,100000,NaN,NaN,source-alpha-beta_p-prelocked-transfer,50-start K-means,SNMFWLP1 538dcfee
+PIE,HLPNMF,30,3,1000,NaN,NaN,5,source-PIE,row-wise class-coordinate maximum,HLPNMF author repository
+PIE,PCE_NMF,50,3,NaN,NaN,1000,NaN,labeled-only-development,scale-invariant contribution-energy maximum,fixed PCE objective
+COIL100,NMF,200,NaN,NaN,NaN,NaN,NaN,protocol-200iter,50-start K-means,Lee-Seung Euclidean MU
+COIL100,CNMF,200,NaN,NaN,NaN,NaN,NaN,source-aligned-200iter,50-start K-means,audited local CNMF
+COIL100,GNMFLD,200,5,600,50,NaN,NaN,aligned-prelocked-not-published-optimum,row-wise class-coordinate maximum,audited GNMFLD adapter
+COIL100,EDNMF,200,NaN,1000,NaN,NaN,NaN,source-COIL100,author row-wise class decision,ERDNMF f2fd73ad
+COIL100,LCNMF,200,NaN,NaN,NaN,NaN,NaN,author-no-tuned-parameter,row-wise class-coordinate maximum,LCNMF 7a53ca76
+COIL100,GOCNMF,50,2,1000,NaN,NaN,NaN,source-COIL100,row-wise one-hot-coordinate maximum,GOCNMF 1ecd7ab0 author table
+COIL100,SNMFWLP,50,3,1000,100000,NaN,NaN,source-alpha-beta_p-prelocked-transfer,50-start K-means,SNMFWLP1 538dcfee
+COIL100,HLPNMF,30,2,1000,NaN,NaN,3,source-COIL100,row-wise class-coordinate maximum,HLPNMF author repository
+COIL100,PCE_NMF,50,2,NaN,NaN,1000,NaN,labeled-only-development,scale-invariant contribution-energy maximum,fixed PCE objective
+AR,NMF,200,NaN,NaN,NaN,NaN,NaN,protocol-200iter,50-start K-means,Lee-Seung Euclidean MU
+AR,CNMF,200,NaN,NaN,NaN,NaN,NaN,source-aligned-200iter,50-start K-means,audited local CNMF
+AR,GNMFLD,200,5,1000,50,NaN,NaN,aligned-prelocked-not-published-optimum,row-wise class-coordinate maximum,audited GNMFLD adapter
+AR,EDNMF,200,NaN,200,NaN,NaN,NaN,source-AR,author row-wise class decision,ERDNMF f2fd73ad
+AR,LCNMF,200,NaN,NaN,NaN,NaN,NaN,author-no-tuned-parameter,row-wise class-coordinate maximum,LCNMF 7a53ca76
+AR,GOCNMF,50,3,1000,NaN,NaN,NaN,transferred-PIE,row-wise one-hot-coordinate maximum,GOCNMF 1ecd7ab0 author table
+AR,SNMFWLP,50,5,1000,100000,NaN,NaN,source-alpha-beta_p-prelocked-transfer,50-start K-means,SNMFWLP1 538dcfee
+AR,HLPNMF,30,5,1000,NaN,NaN,1,source-AR,row-wise class-coordinate maximum,HLPNMF author repository
+AR,PCE_NMF,50,3,NaN,NaN,100,NaN,transferred-face-development,scale-invariant contribution-energy maximum,fixed PCE objective
+MSRA25,NMF,200,NaN,NaN,NaN,NaN,NaN,protocol-200iter,50-start K-means,Lee-Seung Euclidean MU
+MSRA25,CNMF,200,NaN,NaN,NaN,NaN,NaN,source-aligned-200iter,50-start K-means,audited local CNMF
+MSRA25,GNMFLD,200,5,1000,50,NaN,NaN,aligned-prelocked-not-published-optimum,row-wise class-coordinate maximum,audited GNMFLD adapter
+MSRA25,EDNMF,200,NaN,10,NaN,NaN,NaN,source-MSRA25,author row-wise class decision,ERDNMF f2fd73ad
+MSRA25,LCNMF,200,NaN,NaN,NaN,NaN,NaN,author-no-tuned-parameter,row-wise class-coordinate maximum,LCNMF 7a53ca76
+MSRA25,GOCNMF,50,3,1000,NaN,NaN,NaN,transferred-PIE,row-wise one-hot-coordinate maximum,GOCNMF 1ecd7ab0 author table
+MSRA25,SNMFWLP,50,10,1000,100000,NaN,NaN,source-alpha-beta_p-prelocked-transfer,50-start K-means,SNMFWLP1 538dcfee
+MSRA25,HLPNMF,30,10,1000,NaN,NaN,1,source-MSRA25,row-wise class-coordinate maximum,HLPNMF author repository
+MSRA25,PCE_NMF,50,3,NaN,NaN,1,NaN,labeled-only-development,scale-invariant contribution-energy maximum,fixed PCE objective
+MNIST,NMF,200,NaN,NaN,NaN,NaN,NaN,protocol-200iter,50-start K-means,Lee-Seung Euclidean MU
+MNIST,CNMF,200,NaN,NaN,NaN,NaN,NaN,source-aligned-200iter,50-start K-means,audited local CNMF
+MNIST,GNMFLD,200,5,600,100,NaN,NaN,aligned-prelocked-not-published-optimum,row-wise class-coordinate maximum,audited GNMFLD adapter
+MNIST,EDNMF,200,NaN,600,NaN,NaN,NaN,transferred-USPS,author row-wise class decision,ERDNMF f2fd73ad
+MNIST,LCNMF,200,NaN,NaN,NaN,NaN,NaN,author-no-tuned-parameter,row-wise class-coordinate maximum,LCNMF 7a53ca76
+MNIST,GOCNMF,50,5,100,NaN,NaN,NaN,source-MNIST,row-wise one-hot-coordinate maximum,GOCNMF 1ecd7ab0 author table
+MNIST,SNMFWLP,50,5,1000,100000,NaN,NaN,source-alpha-beta_p-prelocked-transfer,50-start K-means,SNMFWLP1 538dcfee
+MNIST,HLPNMF,30,5,1000,NaN,NaN,1,source-MNIST,row-wise class-coordinate maximum,HLPNMF author repository
+MNIST,PCE_NMF,50,5,NaN,NaN,100,NaN,labeled-only-development,scale-invariant contribution-energy maximum,fixed PCE objective
+USPS,NMF,200,NaN,NaN,NaN,NaN,NaN,protocol-200iter,50-start K-means,Lee-Seung Euclidean MU
+USPS,CNMF,200,NaN,NaN,NaN,NaN,NaN,source-aligned-200iter,50-start K-means,audited local CNMF
+USPS,GNMFLD,200,5,600,100,NaN,NaN,aligned-prelocked-not-published-optimum,row-wise class-coordinate maximum,audited GNMFLD adapter
+USPS,EDNMF,200,NaN,600,NaN,NaN,NaN,source-USPS,author row-wise class decision,ERDNMF f2fd73ad
+USPS,LCNMF,200,NaN,NaN,NaN,NaN,NaN,author-no-tuned-parameter,row-wise class-coordinate maximum,LCNMF 7a53ca76
+USPS,GOCNMF,50,5,100,NaN,NaN,NaN,transferred-MNIST,row-wise one-hot-coordinate maximum,GOCNMF 1ecd7ab0 author table
+USPS,SNMFWLP,50,5,1000,100000,NaN,NaN,source-alpha-beta_p-prelocked-transfer,50-start K-means,SNMFWLP1 538dcfee
+USPS,HLPNMF,30,5,1000,NaN,NaN,1,transferred-MNIST,row-wise class-coordinate maximum,HLPNMF author repository
+USPS,PCE_NMF,50,3,NaN,NaN,1000,NaN,labeled-only-development,scale-invariant contribution-energy maximum,fixed PCE objective

@@ -1,105 +1,31 @@
 # PCE-NMF
 
-MATLAB R2019a implementation and reproducibility materials for **Propagated
-Class-Exclusion Non-negative Matrix Factorization (PCE-NMF)**.
+Current manuscript and MATLAB R2019a reproducibility package for **Propagated class exclusion for direct semi-supervised non-negative matrix factorization**.
 
-PCE-NMF propagates partial class evidence through a sample graph, converts the
-evidence into class-incompatibility weights, and suppresses incompatible
-rank-one reconstruction contributions. The same scale-invariant contribution
-energies provide the final class assignment.
+## Current version
 
-## Repository contents
+- [Paper (PDF)](paper/PCE-NMF.pdf) and [LaTeX source](paper/PCE-NMF.tex). The source includes the current theorem, mechanism figure, all cited figures, and its full-metric tables. Compile from `paper/` with `pdflatex PCE-NMF.tex` (twice for references).
+- [Frozen protocol](docs/current/PROTOCOL_LOCK.md), [parameter lock](docs/current/PARAMETER_LOCK.csv), and [method/source notes](docs/current/METHOD_SOURCE_NOTES.md).
+- [Current experimental records](results/current/README.md) for the ten-data-set, nine-method main comparison and the reported mechanism, label, noise, scalability, timing, and convergence analyses.
+- [MATLAB R2019a experiment code](experiments/current/README.md). The standalone [core solver](code/pce_nmf.m) and [synthetic demo](code/demo_synthetic.m) remain available.
 
-- `code/pce_nmf.m`: core PCE-NMF solver.
-- `code/demo_synthetic.m`: self-contained smoke test with synthetic data.
-- `docs/PROTOCOL.md`: locked experimental protocol and parameters.
-- `docs/DATASETS.md`: expected data format and official dataset sources.
-- `docs/THIRD_PARTY_METHODS.md`: baseline provenance and release boundary.
-- `docs/PARAMETER_PROVENANCE.md`: locked settings and selection provenance.
-- `docs/hlpnmf/`: HLPNMF source audit, locked protocol, NMI alignment, and final interpretation.
-- `results/`: compact tables from the independent-test comparison and supporting analyses.
-- `figures/`: selected current paper figures.
-- `paper/PCE-NMF.tex` and `paper/PCE-NMF.pdf`: current manuscript source and PDF.
-- `experiments/`: MATLAB R2019a protocol, aggregation, audit, and plotting scripts.
+The paper uses 20 paired formal runs, six clustering metrics on unlabeled samples, and each external method's native decision rule. PCE-NMF uses the frozen objective, class-support constraint, harmonic evidence, and contribution-energy decision. The paper reports the measured strengths and losses of the method across data sets.
 
-The benchmark datasets and third-party baseline implementations are not
-redistributed in this repository.
+## Data and external code
+
+The image datasets and third-party implementations are not redistributed. See [dataset preparation](docs/DATASETS.md) and [method provenance](docs/THIRD_PARTY_METHODS.md). The repository includes the recorded outputs needed to inspect every reported result. Re-running the full nine-method benchmark requires the original data and the HLPNMF author implementation; the released adapters and protocol specify the remaining method calls.
 
 ## Quick start
 
-1. Open MATLAB R2019a or later.
-2. Set the current folder to the repository root.
-3. Run:
+In MATLAB R2019a, from the repository root:
 
 ```matlab
 addpath('code');
 demo_synthetic;
 ```
 
-The demo constructs a non-negative three-class dataset, selects 10% labeled
-samples per class, runs PCE-NMF, and prints accuracy on the unlabeled samples.
-No toolbox is required for the core solver or the demo.
+The demo uses synthetic data and requires no toolbox. The full experimental package is described in `experiments/current/README.md`.
 
-## Core call
+## License and citation
 
-```matlab
-[pred, model] = pce_nmf(X, y, labeled, opts);
-```
-
-- `X`: non-negative `m x n` matrix; samples are columns.
-- `y`: `n x 1` class labels encoded as consecutive integers `1,...,c`.
-- `labeled`: `n x 1` logical vector indicating labeled samples.
-- `opts`: options structure; see `help pce_nmf`.
-- `pred`: direct class assignments for all samples.
-- `model`: learned factors, propagated evidence, exclusion weights, scores,
-  objective history, and runtime.
-
-For the paper protocol, normalize every sample to unit Euclidean norm before
-calling the solver. The formal setting uses 50 iterations, `lambda = 100`, and
-dataset-specific neighborhood sizes listed in `docs/PROTOCOL.md`.
-
-## Reproducibility scope
-
-The CSV files contain the retained numerical records used for the manuscript
-tables and figures. The primary comparison uses 20 independent test seeds and
-nine methods. Development seeds used for sensitivity analysis are kept
-separate from the independent-test records. Full reruns require users to obtain
-the datasets from their original providers and prepare the matrices described
-in `docs/DATASETS.md`.
-
-`results/independent_test_raw.csv` contains the original 960 records for the
-eight-method comparison. `results/hlpnmf/` adds 120 HLPNMF records, producing
-1080 method--data-set--seed records in the nine-method comparison. Third-party source files are not
-redistributed. The required adapter contract, verified source revisions, and
-release boundary are documented under `experiments/adapters/` and
-`docs/THIRD_PARTY_METHODS.md`.
-
-To verify the original 960-row integrity gate and regenerate its summary, pairwise,
-diagnostic, and LaTeX outputs from the released raw records, run:
-
-```matlab
-addpath('experiments');
-assemble_independent_formal20_R2019a;
-```
-
-The HLPNMF extension is reproduced separately because its author implementation
-uses an internal initialization interface. Obtain the author source at the
-commit recorded in `docs/hlpnmf/SOURCE_AUDIT.md`, place it under
-`third_party/HLPNMF`, prepare the six datasets under `data/`, and run:
-
-```matlab
-addpath(fullfile('experiments','hlpnmf'));
-run_HLPNMF_common_R2019a('formal');
-analyze_HLPNMF_common_R2019a;
-```
-
-## Citation
-
-Citation metadata are provided in `CITATION.cff`. Please cite the associated
-paper when using this implementation.
-
-## License
-
-The original PCE-NMF code in `code/` is released under the MIT License. Dataset
-files and third-party methods retain their original terms and are not covered
-by this repository's MIT License.
+The original core solver and demo in `code/` are released under the MIT License. Datasets, author implementations, and attributed helper code retain their own terms. Citation metadata are in `CITATION.cff`.

@@ -1,18 +1,7 @@
-# Third-party methods
+# Method provenance and release boundary
 
-The paper compares PCE-NMF with NMF, CNMF, GNMFLD, EDNMF (ERDNMF), LCNMF,
-GOCNMF, SNMFWLP, and HLPNMF.
+The current paper compares PCE-NMF with NMF, CNMF, GNMFLD, EDNMF, LCNMF, GOCNMF, SNMFWLP, and HLPNMF. HCE-NMF and harmonic-only are matched mechanism controls. The exact parameter lock is in `docs/current/PARAMETER_LOCK.csv`; implementation and source notes are in `docs/current/METHOD_SOURCE_NOTES.md`.
 
-This repository releases the original PCE-NMF solver and numerical comparison
-tables. It does not redistribute third-party implementations. EDNMF and LCNMF
-were evaluated from preserved author-code snapshots; the other baselines were
-executed through audited local adapters aligned with their reported models and
-parameters. HLPNMF was run from the author's public repository at frozen commit
-`00ba5aacd210e5df2304ae370d34a4395a706e27`; its source is not redistributed.
-Each baseline retains its native decision mechanism. Dataset-specific
-transferred parameters are identified in the manuscript and protocol records.
+The released adapters are under `experiments/current/code/adapters/`. They retain the method-specific training and native prediction rules used for the recorded experiments. The HLPNMF adapter calls the author's `HLPNMF` function; the author source is not included. Other third-party source snapshots and all benchmark datasets are also omitted. The Hungarian-assignment helpers in the adapter directory carry their original attribution and are not covered by the repository's MIT grant for `code/`.
 
-Users reproducing the full comparison should obtain each implementation from
-its authors or official project page and retain its license and attribution.
-The HLPNMF source and paper/code alignment audit are documented under
-`docs/hlpnmf/`.
+Use the result records in `results/current/` to inspect the exact comparisons without downloading the datasets or external implementations. To rerun the full benchmark, obtain the original materials and add the HLPNMF source under `third_party/HLPNMF`.

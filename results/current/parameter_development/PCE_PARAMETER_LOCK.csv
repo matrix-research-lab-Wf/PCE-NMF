@@ -1,0 +1,11 @@
+dataset,selected_p,selected_lambda,parameter_tag,development_seeds,selection_criterion
+YaleB,2,100,labeled-only-development,20261009:20261013,mean native validation ACC; smaller value on exact tie; NMI diagnostic only
+COIL20,2,100,labeled-only-development,20261009:20261013,mean native validation ACC; smaller value on exact tie; NMI diagnostic only
+Optdigits,3,100,labeled-only-development,20261009:20261013,mean native validation ACC; smaller value on exact tie; NMI diagnostic only
+ORL,3,100,transferred-face-development,20261009:20261013,mean native validation ACC; smaller value on exact tie; NMI diagnostic only
+PIE,3,1000,labeled-only-development,20261009:20261013,mean native validation ACC; smaller value on exact tie; NMI diagnostic only
+COIL100,2,1000,labeled-only-development,20261009:20261013,mean native validation ACC; smaller value on exact tie; NMI diagnostic only
+AR,3,100,transferred-face-development,20261009:20261013,mean native validation ACC; smaller value on exact tie; NMI diagnostic only
+MSRA25,3,1,labeled-only-development,20261009:20261013,mean native validation ACC; smaller value on exact tie; NMI diagnostic only
+MNIST,5,100,labeled-only-development,20261009:20261013,mean native validation ACC; smaller value on exact tie; NMI diagnostic only
+USPS,3,1000,labeled-only-development,20261009:20261013,mean native validation ACC; smaller value on exact tie; NMI diagnostic only
