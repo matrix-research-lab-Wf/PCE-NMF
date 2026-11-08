@@ -1,0 +1,1009 @@
+\documentclass[preprint,12pt]{elsarticle}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs,multirow,array}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{placeins}
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{url}
+
+\allowdisplaybreaks
+\setcounter{topnumber}{4}
+\setcounter{bottomnumber}{2}
+\setcounter{totalnumber}{6}
+\renewcommand{\topfraction}{0.90}
+\renewcommand{\bottomfraction}{0.75}
+\renewcommand{\textfraction}{0.10}
+\renewcommand{\floatpagefraction}{0.75}
+\biboptions{numbers,sort&compress}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\eps}{\varepsilon}
+\newcommand{\ones}{\mathbf{1}}
+\newcommand{\argmaxop}{\operatorname*{arg\,max}}
+\newcommand{\had}{\odot}
+
+\journal{Pattern Recognition}
+\date{Oct. 29, 2026}
+
+% Submission constraints for the rebuilt manuscript:
+% no more than 35 pages in this template and at least 35 verified references.
+
+\begin{document}
+\begin{frontmatter}
+
+\title{Propagated class exclusion for direct semi-supervised non-negative matrix factorization}
+
+\author{Deshu Sun}
+\author{Feng Wang\corref{cor1}}
+\cortext[cor1]{Corresponding author.}
+\ead{wangfeng@gzmu.edu.cn}
+\address{College of Data Science and Information Engineering, Guizhou Minzu University, Guiyang, Guizhou 550025, P.R. China}
+
+\begin{abstract}
+Semi-supervised non-negative matrix factorization (NMF) commonly uses
+labels to shape a representation before a separate class decision.
+We formulate propagated class-exclusion NMF (PCE-NMF), in which each
+factor component denotes a class and graph-derived harmonic evidence
+penalizes unsupported class contributions. Labeled samples retain
+exact class support, and a scale-invariant contribution energy assigns
+unlabeled samples directly from the factors. We evaluate the method
+with 20 paired splits on ten data sets against eight established
+methods and two mechanism controls. PCE-NMF exceeds a matched
+hard-exclusion factorization on all ten data sets, isolating the value
+of propagated exclusion within the factorization. Its mean accuracy
+difference from harmonic prediction alone is $-0.0006$, with
+data-set-level gains and losses.
+PCE-NMF attains the
+highest accuracy among PCE-NMF, HLPNMF, and GOCNMF on COIL20, ORL, and
+COIL100, while HLPNMF leads on six data sets. A no-cache timing study
+places PCE-NMF between GOCNMF and HLPNMF on every data set. The study
+establishes a direct class-aware factorization and separates the
+contribution of propagated exclusion from the predictive strength of
+the underlying harmonic field.  The source code is publicly available at https://github.com/matrix-research-lab-Wf/PCE-NMF.
+\end{abstract}
+
+\begin{keyword}
+Non-negative matrix factorization \sep
+Semi-supervised clustering \sep
+Label propagation \sep
+Class exclusion \sep
+Direct clustering
+\end{keyword}
+
+\end{frontmatter}
+
+\section{Introduction}
+\label{sec:introduction}
+
+Non-negative matrix factorization represents a non-negative data matrix
+through a small set of non-negative factors~\cite{lee1999parts,lee2000algorithms}. In clustering, the sample
+factor indicates how strongly each sample is associated with each
+component. NMF has been used for document clustering~\cite{xu2003document};
+its connections to spectral and orthogonal clustering formulations
+have also been studied~\cite{ding2005spectral,ding2006orthogonal}.
+Sparsity constraints~\cite{hoyer2004sparse} and alternative numerical
+solvers~\cite{lin2007projected,kim2011fast} address different aspects
+of the factorization. Limited class labels can make components easier
+to interpret: they may shape a representation~\cite{liu2012cnmf},
+constrain labeled coordinates, or propagate class information to
+unlabeled samples~\cite{zhu2003harmonic}.
+
+The class meaning of an NMF component is usually assigned after the
+factorization. With a small labeled set, it can instead be specified
+during fitting. Each of the $c$ components then denotes one class, and
+the labeled rows of the sample factor have exact class support. For an
+unlabeled sample, support alone leaves the relative cost of candidate
+classes unspecified. A harmonic field on the sample graph provides
+class evidence at these unlabeled vertices.
+
+PCE-NMF uses the complement of that evidence as a class-specific
+penalty on each factor contribution. The same contribution energy is
+used for the final class decision. This gives the graph evidence a
+specific role in the factorization while preserving ordinary NMF
+reconstruction. The construction also makes the decision invariant to
+positive diagonal rescaling of the two factors.
+
+We examine three questions. How much does propagated exclusion change
+a hard-support factorization? How do factor-based decisions compare
+with predictions from the harmonic field itself? How does the method
+compare with established semi-supervised NMF methods under matched
+splits and native prediction rules? Ten-data-set experiments address
+these questions; additional fixed experiments measure sensitivity to
+label fraction, corruption, class count, runtime, and numerical
+convergence. The results show large gains over hard exclusion within
+the factorization, similar mean ACC to harmonic prediction, and strong
+performance on COIL20 and COIL100.
+
+The paper makes three contributions. First, it defines a class-wise
+exclusion term on factor contribution energy and an aligned direct
+decision rule. Second, it establishes well-posedness of the regularized
+harmonic step, descent of the exact alternating updates under stated
+conditions, and scale invariance of class energy. Third, matched
+controls isolate the contribution of propagated exclusion and show
+that the resulting factor-based decisions have data-set-specific gains
+and losses relative to direct harmonic prediction. A nine-method
+benchmark and no-cache timing study characterize the predictive and
+computational behavior of the construction.
+
+\section{Related Work}
+\label{sec:related}
+
+\subsection{Representation-level semi-supervision in NMF}
+
+Constrained NMF incorporates partial labels into the factorization to
+learn a discriminative representation~\cite{liu2012cnmf}. Other
+representation-level methods use discriminative terms on labeled
+samples~\cite{xing2021dssnmf,li2025ednmf}, local constraints
+~\cite{shen2026lcnmf}, or a combination of label discrimination and
+graph regularization~\cite{xing2021gnmfld}. The learned coordinates
+can then support a downstream class decision. PCE-NMF uses
+$c$ components with explicit class meanings and restricts the labeled
+rows of $V$ to their known class support. Its unlabeled penalty acts on
+the contribution of each class component to each sample, so the class
+decision is obtained from the factors themselves.
+
+\subsection{Graph and propagation mechanisms}
+
+Graph-based clustering includes normalized cuts~\cite{shi2000ncut},
+Laplacian embeddings~\cite{belkin2003laplacian}, and spectral
+clustering~\cite{luxburg2007tutorial}. Graph-regularized NMF
+preserves local relations in the low-dimensional
+representation~\cite{cai2011gnmf}; symmetric NMF provides another
+factorization of a sample affinity matrix~\cite{kuang2012symmetric}.
+Harmonic label propagation solves a graph boundary-value problem to
+extend labels from observed to unobserved vertices~\cite{zhu2003harmonic},
+while local and global consistency uses a graph-smoothing
+formulation~\cite{zhou2003consistency}.
+
+In semi-supervised NMF, pairwise constraints can modify the graph
+~\cite{wang2016constraint}. Label and constraint propagation have also
+been combined in the factorization~\cite{mo2024propagation}; hypergraph
+methods use higher-order sample relations~\cite{yin2023hypergraph},
+and pivotal-aware models propagate both point labels and pairwise
+constraints~\cite{yang2025pivotal}. Weighted label propagation is
+coupled to NMF in SNMFWLP~\cite{jing2026snmfwlp}. HLPNMF couples
+high-order propagation with NMF through a hypergraph-induced
+transition structure~\cite{li2026hlpnmf}. PCE-NMF computes a harmonic class field
+first and uses it as fixed class-exclusion evidence during
+factorization. Thus its graph affects the class penalties, while the
+reconstruction remains the ordinary two-factor NMF term.
+
+\subsection{Direct class-semantic factorization}
+
+GOCNMF embeds one-hot labels in the representation of labeled samples
+and applies graph regularization to guide unlabeled
+representations~\cite{li2025gocnmf}. PCE-NMF also assigns class
+meanings to factor coordinates, but it uses hard class support rather
+than fixing labeled coordinates to one-hot values. For unlabeled
+samples, it penalizes class-specific reconstruction energy according
+to harmonic evidence. This separates the observed label constraint
+from the propagated preference over candidate classes.
+Robust semi-supervised NMF~\cite{peng2021robust} and self-supervised
+semi-supervised NMF~\cite{chavoshinejad2023s4} pursue complementary
+goals through robust losses or additional self-supervisory signals.
+
+Table~\ref{tab:method_distinctions} locates PCE-NMF relative to the
+closest compared methods. Its defining choice is to apply propagated
+evidence to the scale-invariant energy of each class contribution,
+followed by a decision on that same energy.
+
+\begin{table}[!htbp]
+\centering
+\caption{How closely related methods use labels and make class decisions.
+The entries describe the formulations and native prediction rules used
+in the paired comparison.}
+\label{tab:method_distinctions}
+\small
+\begin{tabular}{p{0.15\linewidth}p{0.47\linewidth}p{0.25\linewidth}}
+\toprule
+Method & Role of supervision in the factorization & Native decision \\
+\midrule
+GOCNMF & One-hot labeled coordinates and graph regularization of the representation & Maximum representation coordinate \\
+SNMFWLP & Weighted label propagation coupled to NMF with basis orthogonality & K-means on the representation \\
+HLPNMF & High-order propagation regularization through a shared coefficient matrix & Maximum class-semantic coordinate \\
+PCE-NMF & Harmonic evidence weights class-specific contribution energy under exact labeled support & Maximum contribution energy \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Propagated Class-Exclusion NMF}
+\label{sec:method}
+
+\subsection{Problem formulation}
+
+Let $X=[x_1,\ldots,x_n]\in\R_+^{d\times n}$ contain $n$ non-negative
+samples with $d$ features, and let $c$ be the number of classes. We
+factorize $X\approx UV^\top$ with
+$U=[u_1,\ldots,u_c]\in\R_+^{d\times c}$ and
+$V=(v_{ik})\in\R_+^{n\times c}$. A labeled index set
+$\mathcal L\subseteq\{1,\ldots,n\}$ supplies labels
+$y_i\in\{1,\ldots,c\}$ for $i\in\mathcal L$. The class identity of
+component $k$ is fixed by these labels. Nonzero samples are normalized
+to unit Euclidean norm before graph construction and factorization.
+
+\subsection{Harmonic class evidence}
+
+Construct a binary $p$-nearest-neighbor graph from Euclidean distances
+between the normalized samples and symmetrize its adjacency matrix
+$W\in\{0,1\}^{n\times n}$. Let
+$D=\operatorname{diag}(W\ones)$ and $L=D-W$. For each connected
+component containing both labeled and unlabeled vertices, partition
+its Laplacian by the labeled and unlabeled indices. The labeled
+one-hot matrix $C$ defines the regularized harmonic field
+\begin{equation}
+  (L_{\mathcal U\mathcal U}+\eps I)F_{\mathcal U}
+   =W_{\mathcal U\mathcal L}C,
+  \qquad \eps=10^{-12}.
+  \label{eq:harmonic_solver}
+\end{equation}
+The implementation clips negative numerical entries to zero and
+normalizes each nonzero row to sum to one. A component without labeled
+vertices contributes no propagated exclusion. Let $P\in[0,1]^{n\times c}$
+denote the resulting class evidence on anchored unlabeled vertices;
+the known one-hot labels are retained on $\mathcal L$.
+
+\subsection{Propagated exclusion model}
+
+Define the exclusion weights $Q\in[0,1]^{n\times c}$ by
+\begin{equation}
+Q_{ik}=\begin{cases}
+0, & i\in\mathcal L,\ k=y_i,\\
+1, & i\in\mathcal L,\ k\ne y_i,\\
+1-P_{ik}, & i\notin\mathcal L\text{ in an anchored component},\\
+0, & i\notin\mathcal L\text{ in an unanchored component}.
+\end{cases}
+\label{eq:exclusion_weights}
+\end{equation}
+The PCE-NMF objective is
+\begin{equation}
+\min_{U,V\ge0}\quad
+\mathcal J(U,V)=\|X-UV^\top\|_F^2
++\lambda\sum_{i=1}^{n}\sum_{k=1}^{c}
+ Q_{ik}\|u_k\|_2^2v_{ik}^2,
+\label{eq:pce_objective}
+\end{equation}
+Here $\lambda\ge0$ controls exclusion strength. The weight
+$1-P_{ik}$ penalizes a class contribution more strongly when the graph
+provides less evidence for that class. The hard labeled-support
+constraint $v_{ik}=0$ for $i\in\mathcal L$ and $k\ne y_i$ remains exact
+throughout optimization.
+
+\subsection{Direct clustering rule}
+
+After optimization, sample $i$ receives the class
+\begin{equation}
+  \hat y_i=\argmaxop_{1\le k\le c}
+  s_{ik},\qquad s_{ik}=\|u_k\|_2^2v_{ik}^2.
+  \label{eq:class_energy}
+\end{equation}
+This rule uses the class meaning of the factors directly and assigns
+samples from $V$ in one step.
+Figure~\ref{fig:pce_mechanism} summarizes the path from labeled samples
+through graph-derived exclusion to the class decision.
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=\linewidth]{figures/pce_mechanism_infographic.png}
+\caption{PCE-NMF mechanism. Labeled samples anchor harmonic class evidence
+$P$ on the sample graph; the resulting exclusion weights $Q$ guide
+class-semantic factorization. After optimization, contribution energies
+give direct class assignments. The heatmaps and sample colors are schematic.}
+\label{fig:pce_mechanism}
+\end{figure}
+
+\subsection{Optimization}
+
+Write $a_k=\|u_k\|_2^2$ and
+$b_k=\sum_iQ_{ik}v_{ik}^2$. The gradients of the objective are
+\begin{align}
+\nabla_U\mathcal J
+ &=2\bigl(UV^\top V-XV+\lambda U\operatorname{diag}(b)\bigr),
+ \label{eq:grad_u}\\
+\nabla_V\mathcal J
+ &=2\bigl(VU^\top U-X^\top U
+   +\lambda(Q\had V)\operatorname{diag}(a)\bigr).
+ \label{eq:grad_v}
+\end{align}
+The implemented alternating multiplicative updates are
+\begin{align}
+U&\leftarrow U\had
+ \frac{XV}{UV^\top V+\lambda U\operatorname{diag}(b)},
+ \label{eq:update_u}\\
+V&\leftarrow V\had
+ \frac{X^\top U}{VU^\top U+\lambda(Q\had V)\operatorname{diag}(a)}.
+ \label{eq:update_v}
+\end{align}
+The fractions are elementwise. Denominators are bounded below by
+$10^{-12}$ in the MATLAB implementation. After each update, forbidden
+labeled coordinates are reset to zero. The formal protocol uses 50
+alternating updates and the parameters locked before evaluation.
+
+\paragraph{Algorithm 1: PCE-NMF optimization.}
+\begin{enumerate}[leftmargin=*,itemsep=2pt]
+\item \textbf{Input:} Non-negative data $X$, labeled indices $\mathcal L$ and labels $y_i$, class count $c$, graph size $p$, locked penalty $\lambda$, and seed. Set $T=50$.
+\item Normalize nonzero columns of $X$; construct the symmetric binary $p$-nearest-neighbor graph $W$. In each anchored component solve Eq.~\eqref{eq:harmonic_solver}, normalize its nonzero rows, and form $Q$ by Eq.~\eqref{eq:exclusion_weights}.
+\item Initialize non-negative $U$ and $V$ from the recorded seed. Set $v_{ik}=0$ for labeled $i$ and $k\ne y_i$.
+\item For $t=1,\ldots,T$, update $U$ and then $V$ by Eqs.~\eqref{eq:update_u}--\eqref{eq:update_v}; bound denominators below by $10^{-12}$ and reset forbidden labeled entries of $V$ to zero.
+\item \textbf{Output:} Factors $U,V$ and unlabeled assignments from Eq.~\eqref{eq:class_energy}.
+\end{enumerate}
+
+\subsection{Computational complexity}
+
+The blocked distance calculation for the graph requires
+$O(dn^2)$ arithmetic; selecting neighbors by sorting each distance
+column adds $O(n^2\log n)$ comparisons. The symmetric binary graph
+contains $O(np)$ edges. The harmonic step solves one sparse system per
+anchored connected component; its time and memory depend on sparse
+factorization fill-in. Each factor update costs
+$O(dnc+(d+n)c^2)$ arithmetic and stores $O((d+n)c)$ factor entries,
+in addition to $X$ and the graph. These bounds describe the
+implementation's main operations; measured wall times are reported in
+Section~\ref{sec:experiments}.
+
+\section{Theoretical Analysis}
+\label{sec:theory}
+
+The descent proof uses the auxiliary-function approach for
+multiplicative NMF updates~\cite{lee2000algorithms,li2026hlpnmf} and
+accounts for the class-exclusion terms in both factor blocks.
+
+\begin{proposition}[Well-posed regularized harmonic step]
+For an undirected graph with non-negative weights and $\eps>0$, the
+matrix $L_{\mathcal U\mathcal U}+\eps I$ in
+Eq.~\eqref{eq:harmonic_solver} is symmetric positive definite. Hence
+the regularized harmonic field is uniquely defined for every right-hand
+side.
+\end{proposition}
+\begin{proof}
+The graph Laplacian is symmetric positive semidefinite because
+\begin{equation*}
+z^\top Lz=\tfrac12\sum_{i,j}W_{ij}(z_i-z_j)^2\ge0
+\end{equation*}
+for every $z\in\R^n$. A principal submatrix of a positive semidefinite matrix
+is positive semidefinite. Therefore, for nonzero
+$h\in\R^{|\mathcal U|}$,
+$h^\top(L_{\mathcal U\mathcal U}+\eps I)h
+\ge\eps\|h\|_2^2>0$. Symmetric positive definiteness gives
+invertibility and a unique solution.
+\end{proof}
+
+\begin{theorem}[Descent of the exact alternating updates]
+\label{thm:exact_descent}
+Fix $Q\in[0,1]^{n\times c}$, let $X\in\R_+^{d\times n}$, and take
+$\lambda\ge0$. Apply Eqs.~\eqref{eq:update_u}--\eqref{eq:update_v}
+in exact arithmetic, keeping forbidden labeled coordinates at zero.
+At each update, assume every positive, permitted coordinate has a
+positive denominator; any coordinate that reaches zero remains zero.
+Each factor update then does not increase $\mathcal J$. Consequently,
+the exact alternating sequence has nonincreasing objective values that
+converge to a finite limit.
+\end{theorem}
+\begin{proof}
+For fixed $V$, let $u\in\R_+^c$ be one row of $U$ and $x$ the
+corresponding row of $X$. Up to a constant, its objective is
+$f(u)=u^\top A u-2h^\top u$, where
+$A=V^\top V+\lambda\operatorname{diag}(b)$ and $h=xV$.
+For fixed $U$, the corresponding expression for row $v_i$ of $V$ has
+$A_i=U^\top U+\lambda\operatorname{diag}(Q_{i:}\had a)$ and
+$h_i=x_i^\top U$, where $x_i$ is column $i$ of $X$.
+Both versions of $A$ are symmetric and entrywise nonnegative, and
+their corresponding $h$ are nonnegative.
+Restrict a row to its positive, permitted coordinates, write the
+current vector as $z>0$, and set
+$D=\operatorname{diag}((Az)_k/z_k)$. For any $\delta$,
+\begin{equation*}
+\delta^\top(D-A)\delta
+=\tfrac12\sum_{j,k}A_{jk}z_jz_k
+\left(\frac{\delta_j}{z_j}-\frac{\delta_k}{z_k}\right)^2\ge0.
+\end{equation*}
+Hence $g(z+\delta\mid z)=f(z)+2(Az-h)^\top\delta+\delta^\top D\delta$
+majorizes $f(z+\delta)$ and is equal to it at $\delta=0$.
+The positive diagonal matrix $D$ gives the nonnegative minimizer
+$z^+=D^{-1}h=z\had h/(Az)$, which is the multiplicative update on
+these coordinates. Thus
+$f(z^+)\le g(z^+\mid z)\le g(z\mid z)=f(z)$.
+If a numerator vanishes, the updated coordinate becomes zero and is
+held there; the same argument applies to the remaining active
+coordinates. Summing over rows proves descent for each factor block.
+Finally, $\mathcal J\ge0$, so its sequence of objective values
+converges to a finite limit.
+\end{proof}
+
+Theorem~\ref{thm:exact_descent} establishes convergence of objective
+values for the exact updates. The MATLAB implementation bounds
+denominators below by $10^{-12}$ and clips factor entries to that
+level; its objective trajectories are measured in
+Section~\ref{sec:experiments}.
+
+\begin{proposition}[Scale invariance of class energy]
+For any positive diagonal matrix
+$T=\operatorname{diag}(t_1,\ldots,t_c)$, the feasible transformation
+$U\mapsto UT$ and $V\mapsto VT^{-1}$ leaves the reconstruction,
+the exclusion penalty, and every class score in
+Eq.~\eqref{eq:class_energy} unchanged.
+\end{proposition}
+\begin{proof}
+Since $T$ is diagonal and positive,
+$(UT)(VT^{-1})^\top=UV^\top$. For each class $k$,
+$\|t_ku_k\|_2^2(v_{ik}/t_k)^2
+=\|u_k\|_2^2v_{ik}^2$. This identity applies to each term of
+the exclusion penalty and to each class score. Multiplication by a
+positive diagonal matrix also preserves non-negativity and every
+forbidden zero in $V$.
+\end{proof}
+
+For an anchored unlabeled sample, $Q_{ik}=1-P_{ik}$ gives the exact
+identity
+\begin{equation}
+\sum_kQ_{ik}s_{ik}=\sum_ks_{ik}-\sum_kP_{ik}s_{ik}.
+\label{eq:evidence_decomposition}
+\end{equation}
+The penalty therefore reduces the cost of contributions aligned with
+the propagated evidence, relative to contributions to unsupported
+classes. Equation~\eqref{eq:evidence_decomposition} is an algebraic
+interpretation of the fixed objective; the measured effect of this
+mechanism is tested by the matched controls in
+Section~\ref{sec:experiments}.
+
+\section{Experiments}
+\label{sec:experiments}
+
+\subsection{Experimental settings}
+
+We evaluated NMF, CNMF, GNMFLD, EDNMF, LCNMF, GOCNMF, SNMFWLP,
+HLPNMF, and PCE-NMF on YaleB, COIL20, Optdigits, ORL, PIE, COIL100,
+AR, MSRA25, MNIST, and USPS. COIL20 and COIL100 originate from the
+Columbia Object Image Library~\cite{nene1996coil20,nene1996coil}; MNIST is the
+handwritten-digit benchmark described by LeCun et al.~\cite{lecun1998gradient}.
+These ten data sets were fixed before the formal comparison and cover
+face, object, and digit recognition tasks.
+Nonzero samples were normalized to unit Euclidean
+norm. For each class, $\max\{1,\lfloor 0.1n_k\rfloor\}$ samples were
+labeled, where $n_k$ is the class size. All methods received the same
+labeled split in each of 20 paired runs. Accuracy
+(ACC), normalized mutual information (NMI), purity, F-score, precision,
+and recall were measured on unlabeled samples. The external methods
+retained their native training and prediction rules. Parameters were
+fixed before the formal runs using source settings where available and
+separate development splits for PCE-NMF.
+
+Table~\ref{tab:datasets} gives the actual matrix dimensions and labeled
+sample counts used in the formal comparison. The number of labeled
+samples follows the per-class floor rule above; all reported scores
+use the remaining samples.
+
+\begin{table}[!htbp]
+\centering
+\caption{Data sets in the locked formal comparison. $n$ is the sample
+count, $d$ is the feature dimension, $c$ is the class count, and
+$n_{\mathcal L}$ is the number of labeled samples per paired split.}
+\label{tab:datasets}
+\small
+\begin{tabular}{lrrrr}
+\toprule
+Data set & $n$ & $d$ & $c$ & $n_{\mathcal L}$ \\
+\midrule
+YaleB     & 2414 & 1024 & 38  & 227 \\
+COIL20    & 1440 & 1024 & 20  & 140 \\
+Optdigits & 5620 & 64   & 10  & 557 \\
+ORL       & 400  & 4096 & 40  & 40  \\
+PIE       & 2856 & 1024 & 68  & 272 \\
+COIL100   & 7200 & 1024 & 100 & 700 \\
+AR        & 1680 & 2000 & 120 & 120 \\
+MSRA25    & 1799 & 256  & 12  & 173 \\
+MNIST     & 6996 & 784  & 10  & 695 \\
+USPS      & 9298 & 256  & 10  & 925 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Clustering performance}
+
+Table~\ref{tab:main_acc_nmi} summarizes the 20-seed means for PCE-NMF
+and two graph-based competitors. Tables~\ref{tab:full_yaleb}--
+\ref{tab:full_usps} immediately below report the complete nine-method,
+six-metric means and standard deviations for each data set. PCE-NMF achieved the
+highest ACC among these three methods on COIL20, ORL, and COIL100.
+HLPNMF led on YaleB, Optdigits, PIE, AR, MSRA25, and USPS, while
+GOCNMF led on MNIST. The pattern changes with the data set and metric:
+for example, PCE-NMF attained ACC/NMI of 0.9100/0.9452 on COIL100,
+whereas HLPNMF attained 0.8740/0.9229; on PIE the corresponding values
+were 0.9376/0.9527 and 0.9589/0.9714.
+
+\begin{table}[!htbp]
+\centering
+\caption{Mean ACC and NMI over 20 paired seeds on unlabeled samples.
+Full nine-method results follow in this section.}
+\label{tab:main_acc_nmi}
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lrrrrrr}
+\toprule
+& \multicolumn{3}{c}{ACC} & \multicolumn{3}{c}{NMI} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+Data set & PCE-NMF & HLPNMF & GOCNMF & PCE-NMF & HLPNMF & GOCNMF \\
+\midrule
+YaleB     & 0.6934 & 0.7308 & 0.7088 & 0.6979 & 0.7323 & 0.7054 \\
+COIL20    & 0.9713 & 0.9515 & 0.9100 & 0.9725 & 0.9518 & 0.9032 \\
+Optdigits & 0.9832 & 0.9859 & 0.9840 & 0.9579 & 0.9632 & 0.9593 \\
+ORL       & 0.6506 & 0.5935 & 0.6426 & 0.7910 & 0.7904 & 0.7963 \\
+PIE       & 0.9376 & 0.9589 & 0.9352 & 0.9527 & 0.9714 & 0.9534 \\
+COIL100   & 0.9100 & 0.8740 & 0.8166 & 0.9452 & 0.9229 & 0.8731 \\
+AR        & 0.6332 & 0.6390 & 0.6323 & 0.8381 & 0.8418 & 0.8394 \\
+MSRA25    & 0.9788 & 0.9941 & 0.9748 & 0.9607 & 0.9878 & 0.9588 \\
+MNIST     & 0.9315 & 0.9291 & 0.9352 & 0.8501 & 0.8508 & 0.8571 \\
+USPS      & 0.9700 & 0.9719 & 0.9695 & 0.9226 & 0.9268 & 0.9222 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Figure~\ref{fig:paired_differences} displays the mean ACC and NMI
+differences between PCE-NMF and each baseline across the ten data sets.
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=\linewidth,height=0.68\textheight,keepaspectratio]{analysis/figures/pce_minus_baselines_acc_nmi.pdf}
+\caption{Differences in mean ACC and NMI between PCE-NMF and each
+baseline on the ten data sets. Each cell averages 20 matched seeds;
+positive values favor PCE-NMF.}
+\label{fig:paired_differences}
+\end{figure}
+\FloatBarrier
+
+\input{tables/formal20_full_metrics_layout.tex}
+
+\subsection{Paired statistical analysis}
+
+For each data set, we first averaged each method over the same 20
+seeds. Across-data-set comparisons then used the ten data-set means as
+paired units, following the distinction between repeated trials and
+independent data sets in multi-algorithm comparisons~\cite{demsar2006comparisons}.
+We used the Friedman rank test~\cite{friedman1937ranks} for the
+multi-method comparison and the paired Wilcoxon test~\cite{wilcoxon1945ranking}
+with Holm adjustment~\cite{holm1979sequential} for the selected
+pairwise comparisons. The mean PCE-NMF minus HLPNMF ACC difference was 0.0031
+(four wins in ten data sets; Holm-adjusted Wilcoxon $p=0.9219$). Against
+GOCNMF, the difference was 0.0150 (seven wins; adjusted $p=0.4648$).
+The corresponding NMI differences were $-0.0050$ and 0.0121, with
+adjusted $p=0.5508$ and $p=0.8457$. The three methods have
+data-dependent performance profiles. Figure~\ref{fig:average_ranks}
+summarizes the nine methods' average ranks across the six metrics.
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.88\linewidth]{analysis/figures/average_ranks.pdf}
+\caption{Average ranks of nine methods across ten data sets for six
+unlabeled-sample clustering metrics. Within each data set, ranking uses
+the method mean over 20 seeds; lower average ranks are better.}
+\label{fig:average_ranks}
+\end{figure}
+
+\subsection{Controlled mechanism comparison}
+
+We compared PCE-NMF with HCE-NMF, which retains NMF and the labeled
+support constraint but removes propagated exclusion, and with a
+harmonic-propagation-only predictor using the same graph field.
+PCE-NMF exceeded HCE-NMF in ACC on all ten data sets. The mean
+data-set-level difference was 0.4319 (95\% confidence interval
+0.3124--0.5514; Holm-adjusted $p=0.0039$). Against harmonic
+propagation alone, its mean difference was $-0.0006$ (95\% confidence
+interval $-0.0134$--0.0121; adjusted $p=0.6953$). Propagated
+exclusion therefore contributed substantially relative to hard
+exclusion in this controlled comparison.
+
+Table~\ref{tab:mechanism_acc} resolves the aggregate comparison by
+data set. The factor-based rule exceeds harmonic prediction on COIL100
+by 0.0243 and on COIL20 by 0.0143, whereas harmonic prediction exceeds
+it on YaleB by 0.0428 and on PIE by 0.0113. Thus the two decisions
+respond differently to the same graph evidence, even though their
+mean ACC across the ten data sets is close.
+
+\begin{table}[!htbp]
+\centering
+\caption{Mean unlabeled-sample ACC over 20 paired seeds in the
+mechanism controls. HCE-NMF uses hard labeled support without
+propagated exclusion; harmonic-only predicts directly from the same
+graph field used by PCE-NMF.}
+\label{tab:mechanism_acc}
+\small
+\begin{tabular}{lrrr}
+\toprule
+Data set & PCE-NMF & HCE-NMF & Harmonic-only \\
+\midrule
+YaleB     & 0.6934 & 0.1469 & 0.7362 \\
+COIL20    & 0.9713 & 0.6606 & 0.9570 \\
+Optdigits & 0.9832 & 0.7041 & 0.9825 \\
+ORL       & 0.6506 & 0.3011 & 0.6418 \\
+PIE       & 0.9376 & 0.3292 & 0.9489 \\
+COIL100   & 0.9100 & 0.3795 & 0.8857 \\
+AR        & 0.6332 & 0.2726 & 0.6297 \\
+MSRA25    & 0.9788 & 0.2298 & 0.9783 \\
+MNIST     & 0.9315 & 0.5771 & 0.9353 \\
+USPS      & 0.9700 & 0.7396 & 0.9702 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Parameter sensitivity and labeled-sample proportion}
+
+PCE-NMF parameters were selected on five development splits separate
+from the formal evaluation. The exclusion weight was assessed before the
+graph-neighborhood size; data sets without an inner validation sample
+per class used the predeclared transfer rule. Figure~\ref{fig:parameter_development}
+shows the recorded validation ACC for four representative data sets.
+The orange points mark locked choices; the graph-size sweep uses each
+data set's selected exclusion weight.
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=\linewidth]{analysis/figures/parameter_development.pdf}
+\caption{PCE-NMF parameter development on COIL20, PIE, MSRA25, and
+MNIST. Mean native validation ACC over five development splits.
+Orange points mark locked parameters. The upper
+row varies exclusion weight $\lambda$; the lower row varies graph
+neighborhood size $p$ at the selected $\lambda$.}
+\label{fig:parameter_development}
+\end{figure}
+
+We then evaluated 5\%, 10\%, 15\%, 20\%, and 30\% labeled samples per
+class on PIE, MSRA25, COIL20, and MNIST. The 10\% points reuse the
+main-comparison trials. At 5\% labels, PCE-NMF obtained ACC 0.9459 on
+COIL20 versus 0.8101 for HLPNMF. On PIE and MSRA25, HLPNMF remained
+higher at the same ratio (0.9094 versus 0.8854, and 0.9770 versus
+0.9460). Figure~\ref{fig:label_ratio} shows the complete preselected
+range.
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=\linewidth]{analysis/figures/label_ratio_acc_nmi.pdf}
+\caption{Mean ACC and NMI over 20 seeds at five labeled-sample
+proportions on four preselected data sets. The 10\% values are the
+audited main-comparison results.}
+\label{fig:label_ratio}
+\end{figure}
+
+\subsection{Noise robustness}
+
+\paragraph{Incorrect observed labels.}
+We also changed 0--3 observed labels per class on COIL20 and PIE while
+keeping the labeled indices, data, initialization, and evaluation labels
+fixed within each seed. All nine methods received the same altered
+labels. At three incorrect labels per class, the mean paired ACC changes
+from the clean condition were $-0.3765$ for PCE-NMF, $-0.3602$ for
+HLPNMF, and $-0.3812$ for GOCNMF on COIL20; on PIE they were
+$-0.5558$, $-0.5524$, and $-0.5647$, respectively. The three methods
+show similar degradation at this corruption level. Figure~\ref{fig:labelnoise}
+shows all preselected levels.
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.88\linewidth]{analysis/figures/labelnoise_paired_acc.pdf}
+\caption{Mean paired change in unlabeled-sample ACC under 0--3
+incorrect observed labels per class on COIL20 and PIE. Each point uses
+20 matched seeds; the same altered labels are supplied to all methods
+within each condition.}
+\label{fig:labelnoise}
+\end{figure}
+
+We corrupted 10\%--50\% of samples using either salt-and-pepper noise
+or a random $5\times5$ black occlusion, with the clean and corrupted
+trials sharing labeled splits.
+Figure~\ref{fig:noise_examples} illustrates the two pixel-level
+perturbations on representative samples from the three image data sets.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.60\linewidth]{analysis/figures/noise_image_examples_layout.pdf}
+\caption{Representative 32-by-32 samples from COIL20, PIE, and YaleB
+before and after salt-and-pepper corruption (pixel probability 0.1)
+or a 5-by-5 black occlusion. Each row uses a common grayscale range.
+The images show the applied input perturbations.}
+\label{fig:noise_examples}
+\end{figure}
+
+Across the three selected data sets and five corruption levels, the
+descriptive mean ACC changes under
+salt-and-pepper noise were $-0.0497$ for PCE-NMF, $-0.0685$ for
+HLPNMF, and $-0.0414$ for GOCNMF. Under occlusion, they were
+$-0.0146$, $-0.0107$, and $-0.0061$, respectively. The relative
+degradation depends on the corruption type and data set;
+Figure~\ref{fig:noise} displays the paired changes by condition.
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=\linewidth]{analysis/figures/noise_paired_acc.pdf}
+\caption{Mean paired change in unlabeled-sample ACC from the clean
+trial under salt-and-pepper noise and $5\times5$ occlusion. Each point
+uses 20 matched seeds. Columns identify the data set and rows the
+corruption type.}
+\label{fig:noise}
+\end{figure}
+
+\subsection{Scalability and running time}
+
+On balanced COIL100 subsets containing 20, 40, 60, 80, and 100
+classes, PCE-NMF had the highest mean ACC among PCE-NMF, HLPNMF, and
+GOCNMF at every tested size. At 100 classes, their ACC means were
+0.9100, 0.8740, and 0.8166. The corresponding measured wall times
+were 14.274, 123.278, and 13.254 seconds, respectively.
+Figure~\ref{fig:scalability} shows performance and measured time as
+the selected COIL100 subset grows.
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=\linewidth]{analysis/figures/scalability_coil100.pdf}
+\caption{ACC, NMI, and measured wall time on balanced COIL100 subsets
+containing 20--100 classes. Each point averages 20 seeds.}
+\label{fig:scalability}
+\end{figure}
+
+In a separate ten-data-set timing study, each trial rebuilt its graph
+and timed construction, fitting, and native prediction. PCE-NMF was
+faster than HLPNMF and slower than GOCNMF on every data set. On
+COIL100, their respective mean times were 10.752, 92.622, and 9.485
+seconds. Figure~\ref{fig:runtime} reports all nine methods on the
+same machine and implementation.
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=\linewidth]{analysis/figures/runtime_by_dataset.pdf}
+\caption{Mean end-to-end runtime over 20 seeds for nine methods on ten
+data sets, including each run's graph construction, fitting, and native
+prediction. No persistent graph cache was shared across timed trials.
+The vertical axis is logarithmic.}
+\label{fig:runtime}
+\end{figure}
+
+\subsection{Numerical convergence}
+
+We recorded the original PCE-NMF objective at initialization and after
+each of its 50 updates in one formal run on YaleB, COIL20, PIE, and
+COIL100. The objective decreased at every recorded step on all four
+data sets. All values remained finite, and the measured nonnegativity
+and labeled-support violations were zero.
+Figure~\ref{fig:convergence} shows these objective trajectories.
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.86\linewidth]{analysis/figures/pce_convergence.pdf}
+\caption{PCE-NMF objective trajectories over 50 updates on four
+representative data sets using one formal run and locked
+parameters. The objective axis is logarithmic.}
+\label{fig:convergence}
+\end{figure}
+
+\FloatBarrier
+\section{Discussion}
+
+The controls measure two effects separately. The large difference from
+HCE-NMF shows the contribution of propagated exclusion within the
+factorization. Direct harmonic prediction has nearly the same mean ACC
+as PCE-NMF across the ten data sets. The factor-based rule gains on
+COIL20 and COIL100 and loses on YaleB, locating its empirical effect at
+the data-set level. The harmonic field supplies a strong direct
+predictor as well as the exclusion weights used in PCE-NMF.
+
+PCE-NMF retains a non-negative class-aware representation and an
+explicit reconstruction term alongside direct class decisions.
+HLPNMF achieves higher ACC on several data sets, whereas PCE-NMF is
+faster in the measured no-cache pipeline. The graph construction is
+quadratic in sample count before neighbor selection, so the measured
+runtime comparison includes this graph cost. The class-count experiment characterizes the tested COIL100
+subsets; its accuracy ordering is specific to those subsets.
+
+\section{Conclusion}
+
+PCE-NMF turns harmonic class evidence into penalties on class-wise NMF
+contributions and uses those contributions for direct decisions. Its
+class-energy rule is invariant to factor rescaling. Across ten data
+sets, propagated exclusion improved on a matched hard-support model.
+Against direct harmonic prediction, its mean ACC difference was
+$-0.0006$, with gains and losses across individual data sets. PCE-NMF performed
+strongly on COIL20 and COIL100 and ran faster than HLPNMF, while
+HLPNMF achieved higher ACC on several other data sets. The combined
+results define the method's mathematical construction and its measured
+performance profile under matched semi-supervised evaluation.
+
+
+\section*{CRediT authorship contribution statement}
+
+Deshu Sun: Writing-original draft, Methodology, Software, Conceptualization, Formal analysis.  Feng Wang: Writing-review and editing, Funding acquisition, Visualization, Conceptualization. All authors reviewed the manuscript.
+
+
+\section*{Declaration of competing interest}
+The authors declare that they have no known competing financial interests or personal relationships that could have appeared to influence the work reported in this paper.
+
+\section*{Data and code availability}
+
+Data will be made available on request.
+
+\section*{Acknowledgments}
+This work was supported by Guizhou Provincial Science and Technology Projects (2025039, 2026283), the High-Level Innovative Talent Project of Guizhou Province (GCC2023027), the Natural Science Research Project of Department of Education of Guizhou Province (2024259), and the Research Foundation of Guizhou Minzu University (GZMUZK[2023]YB10).
+
+
+
+
+
+
+
+
+\begin{thebibliography}{99}
+
+\bibitem{lee1999parts}
+D. D. Lee, H. S. Seung, Learning the parts of objects by non-negative matrix factorization,
+Nature 401 (1999) 788-791. \url{https://doi.org/10.1038/44565}.
+
+\bibitem{lee2000algorithms}
+D. D. Lee, H. S. Seung, Algorithms for non-negative matrix factorization,
+in: Advances in Neural Information Processing Systems 13, 2000, pp. 556-562.
+
+\bibitem{xu2003document}
+W. Xu, X. Liu, Y. Gong, Document clustering based on non-negative matrix factorization,
+in: Proceedings of SIGIR, 2003, pp. 267-273. \url{https://doi.org/10.1145/860435.860485}.
+
+\bibitem{ding2005spectral}
+C. Ding, X. He, H. D. Simon, On the equivalence of nonnegative matrix factorization and spectral clustering,
+in: Proceedings of the SIAM International Conference on Data Mining, 2005, pp. 606-610.
+\url{https://doi.org/10.1137/1.9781611972757.70}.
+
+\bibitem{ding2006orthogonal}
+C. Ding, T. Li, W. Peng, H. Park, Orthogonal nonnegative matrix tri-factorizations for clustering,
+in: Proceedings of KDD, 2006, pp. 126-135. \url{https://doi.org/10.1145/1150402.1150420}.
+
+\bibitem{hoyer2004sparse}
+P. O. Hoyer, Non-negative matrix factorization with sparseness constraints,
+Journal of Machine Learning Research 5 (2004) 1457-1469.
+
+\bibitem{lin2007projected}
+C.-J. Lin, Projected gradient methods for nonnegative matrix factorization,
+Neural Computation 19 (10) (2007) 2756-2779. \url{https://doi.org/10.1162/neco.2007.19.10.2756}.
+
+\bibitem{kim2011fast}
+J. Kim, H. Park, Fast nonnegative matrix factorization: An active-set-like method and comparisons,
+SIAM Journal on Scientific Computing 33 (6) (2011) 3261-3281.
+\url{https://doi.org/10.1137/110821172}.
+
+\bibitem{liu2012cnmf}
+H. Liu, Z. Wu, X. Li, D. Cai, T. S. Huang, Constrained nonnegative matrix factorization for image representation,
+IEEE Transactions on Pattern Analysis and Machine Intelligence 34 (7) (2012) 1299-1311.
+\url{https://doi.org/10.1109/TPAMI.2011.217}.
+
+\bibitem{zhu2003harmonic}
+X. Zhu, Z. Ghahramani, J. Lafferty, Semi-supervised learning using Gaussian fields and harmonic functions,
+in: Proceedings of the 20th International Conference on Machine Learning, 2003, pp. 912-919.
+
+\bibitem{xing2021dssnmf}
+Z. Xing, M. Wen, J. Peng, J. Feng, Discriminative semi-supervised non-negative matrix factorization for data clustering,
+Engineering Applications of Artificial Intelligence 103 (2021) 104289.
+\url{https://doi.org/10.1016/j.engappai.2021.104289}.
+
+\bibitem{li2025ednmf}
+J. Li, X. Shen, C. Li, Y. Li, Elements discriminative non-negative matrix factorization for data clustering,
+Engineering Applications of Artificial Intelligence 156 (2025) 111210.
+\url{https://doi.org/10.1016/j.engappai.2025.111210}.
+
+\bibitem{shen2026lcnmf}
+X. Shen, J. Li, Locally constrained non-negative matrix factorization for data clustering,
+IEEE Access 14 (2026) 7890--78919. \url{https://doi.org/10.1109/ACCESS.2026.3696008}.
+
+\bibitem{xing2021gnmfld}
+Z. Xing, Y. Ma, X. Yang, F. Nie, Graph regularized nonnegative matrix factorization with label discrimination for data clustering,
+Neurocomputing 440 (2021) 297-309. \url{https://doi.org/10.1016/j.neucom.2021.01.064}.
+
+\bibitem{shi2000ncut}
+J. Shi, J. Malik, Normalized cuts and image segmentation,
+IEEE Transactions on Pattern Analysis and Machine Intelligence 22 (8) (2000) 888-905.
+\url{https://doi.org/10.1109/34.868688}.
+
+\bibitem{belkin2003laplacian}
+M. Belkin, P. Niyogi, Laplacian eigenmaps for dimensionality reduction and data representation,
+Neural Computation 15 (6) (2003) 1373-1396. \url{https://doi.org/10.1162/089976603321780317}.
+
+\bibitem{luxburg2007tutorial}
+U. von Luxburg, A tutorial on spectral clustering,
+Statistics and Computing 17 (4) (2007) 395-416. \url{https://doi.org/10.1007/s11222-007-9033-z}.
+
+\bibitem{cai2011gnmf}
+D. Cai, X. He, J. Han, T. S. Huang, Graph regularized nonnegative matrix factorization for data representation,
+IEEE Transactions on Pattern Analysis and Machine Intelligence 33 (8) (2011) 1548-1560.
+\url{https://doi.org/10.1109/TPAMI.2010.231}.
+
+\bibitem{kuang2012symmetric}
+D. Kuang, C. Ding, H. Park, Symmetric nonnegative matrix factorization for graph clustering,
+in: Proceedings of the SIAM International Conference on Data Mining, 2012, pp. 106-117.
+\url{https://doi.org/10.1137/1.9781611972825.10}.
+
+\bibitem{zhou2003consistency}
+D. Zhou, O. Bousquet, T. N. Lal, J. Weston, B. Sch\"olkopf,
+Learning with local and global consistency,
+in: Advances in Neural Information Processing Systems 16, 2003, pp. 321-328.
+
+\bibitem{wang2016constraint}
+D. Wang, X. Gao, X. Wang, Semi-supervised nonnegative matrix factorization via constraint propagation,
+IEEE Transactions on Cybernetics 46 (1) (2016) 233-244.
+\url{https://doi.org/10.1109/TCYB.2015.2399533}.
+
+\bibitem{mo2024propagation}
+Y. Mo, X. Li, J. Mei, Semi-supervised nonnegative matrix factorization with label propagation and constraint propagation,
+Engineering Applications of Artificial Intelligence 133 (2024) 108196.
+\url{https://doi.org/10.1016/j.engappai.2024.108196}.
+
+\bibitem{yin2023hypergraph}
+J. Yin, S. Peng, Z. Yang, B. Chen, Z. Lin, Hypergraph based semi-supervised symmetric nonnegative matrix factorization for image clustering,
+Pattern Recognition 137 (2023) 109274. \url{https://doi.org/10.1016/j.patcog.2022.109274}.
+
+\bibitem{yang2025pivotal}
+X. Yang, T. Zhu, S. Peng, F. Nie, Z. Lin, Semi-supervised pivotal-aware nonnegative matrix factorization with label and pairwise constraint propagation for data clustering,
+Pattern Recognition 157 (2025) 110933. \url{https://doi.org/10.1016/j.patcog.2024.110933}.
+
+\bibitem{jing2026snmfwlp}
+W. Jing, L. Lu, W. Ou, Semi-supervised non-negative matrix factorization with weighted label propagation for data representation,
+Signal Processing 241 (2026) 110407. \url{https://doi.org/10.1016/j.sigpro.2025.110407}.
+
+\bibitem{li2026hlpnmf}
+J. Li, X. Zhou, X. Shen, C. Li, High-order label propagation-guided nonnegative matrix factorization for semi-supervised clustering,
+Pattern Recognition 180 (2026) 114657. \url{https://doi.org/10.1016/j.patcog.2026.114657}.
+
+\bibitem{li2025gocnmf}
+J. Li, C. Li, Graph regularized one-hot-constrained nonnegative matrix factorization for data representation,
+Engineering Applications of Artificial Intelligence 156 (2025) 111224.
+\url{https://doi.org/10.1016/j.engappai.2025.111224}.
+
+\bibitem{peng2021robust}
+S. Peng, W. Ser, B. Chen, Z. Lin, Robust semi-supervised nonnegative matrix factorization for image clustering,
+Pattern Recognition 111 (2021) 107683. \url{https://doi.org/10.1016/j.patcog.2020.107683}.
+
+\bibitem{chavoshinejad2023s4}
+J. Chavoshinejad, S. A. Seyedi, F. Akhlaghian Tab, N. Salahian,
+Self-supervised semi-supervised nonnegative matrix factorization for data clustering,
+Pattern Recognition 137 (2023) 109282. \url{https://doi.org/10.1016/j.patcog.2022.109282}.
+
+\bibitem{nene1996coil20}
+S. A. Nene, S. K. Nayar, H. Murase, Columbia Object Image Library (COIL-20),
+Technical Report CUCS-005-96, Columbia University, 1996.
+\url{https://www.cs.columbia.edu/CAVE/software/softlib/coil-20.php}.
+
+\bibitem{nene1996coil}
+S. A. Nene, S. K. Nayar, H. Murase, Columbia Object Image Library (COIL-100),
+Technical Report CUCS-006-96, Columbia University, 1996.
+\url{https://www.cs.columbia.edu/CAVE/software/softlib/coil-100.php}.
+
+\bibitem{lecun1998gradient}
+Y. LeCun, L. Bottou, Y. Bengio, P. Haffner, Gradient-based learning applied to document recognition,
+Proceedings of the IEEE 86 (11) (1998) 2278-2324. \url{https://doi.org/10.1109/5.726791}.
+
+\bibitem{demsar2006comparisons}
+J. Dem\v{s}ar, Statistical comparisons of classifiers over multiple data sets,
+Journal of Machine Learning Research 7 (2006) 1-30.
+
+\bibitem{friedman1937ranks}
+M. Friedman, The use of ranks to avoid the assumption of normality implicit in the analysis of variance,
+Journal of the American Statistical Association 32 (200) (1937) 675-701.
+\url{https://doi.org/10.1080/01621459.1937.10503522}.
+
+\bibitem{wilcoxon1945ranking}
+F. Wilcoxon, Individual comparisons by ranking methods,
+Biometrics Bulletin 1 (6) (1945) 80-83. \url{https://doi.org/10.2307/3001968}.
+
+\bibitem{holm1979sequential}
+S. Holm, A simple sequentially rejective multiple test procedure,
+Scandinavian Journal of Statistics 6 (2) (1979) 65-70.
+\url{https://www.jstor.org/stable/4615733}.
+
+\end{thebibliography}
+
+\end{document}
+
