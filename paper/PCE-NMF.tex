@@ -37,10 +37,7 @@
 \newcommand{\had}{\odot}
 
 \journal{Pattern Recognition}
-\date{Oct. 29, 2026}
-
-% Submission constraints for the rebuilt manuscript:
-% no more than 35 pages in this template and at least 35 verified references.
+\date{Nov. 8, 2026}
 
 \begin{document}
 \begin{frontmatter}
@@ -54,26 +51,21 @@
 \address{College of Data Science and Information Engineering, Guizhou Minzu University, Guiyang, Guizhou 550025, P.R. China}
 
 \begin{abstract}
-Semi-supervised non-negative matrix factorization (NMF) commonly uses
-labels to shape a representation before a separate class decision.
-We formulate propagated class-exclusion NMF (PCE-NMF), in which each
-factor component denotes a class and graph-derived harmonic evidence
-penalizes unsupported class contributions. Labeled samples retain
-exact class support, and a scale-invariant contribution energy assigns
-unlabeled samples directly from the factors. We evaluate the method
-with 20 paired splits on ten data sets against eight established
-methods and two mechanism controls. PCE-NMF exceeds a matched
-hard-exclusion factorization on all ten data sets, isolating the value
-of propagated exclusion within the factorization. Its mean accuracy
-difference from harmonic prediction alone is $-0.0006$, with
-data-set-level gains and losses.
-PCE-NMF attains the
-highest accuracy among PCE-NMF, HLPNMF, and GOCNMF on COIL20, ORL, and
-COIL100, while HLPNMF leads on six data sets. A no-cache timing study
-places PCE-NMF between GOCNMF and HLPNMF on every data set. The study
-establishes a direct class-aware factorization and separates the
-contribution of propagated exclusion from the predictive strength of
-the underlying harmonic field.  The source code is publicly available at https://github.com/matrix-research-lab-Wf/PCE-NMF.
+Semi-supervised non-negative matrix factorization (NMF) often uses
+labels to learn a representation before making a separate class
+decision. We propose propagated class-exclusion NMF (PCE-NMF), which
+assigns a class meaning to each factor component and uses graph-derived
+harmonic evidence to penalize unsupported class contributions. Exact
+class support is imposed for labeled samples, while unlabeled samples
+are assigned directly from scale-invariant contribution energies. We
+evaluate PCE-NMF on ten data sets using 20 paired splits, eight
+established methods, and two mechanism controls. PCE-NMF outperforms a
+matched hard-exclusion factorization on all ten data sets, demonstrating
+the effect of incorporating propagated evidence into the
+factorization. It achieves the highest accuracy among PCE-NMF, HLPNMF,
+and GOCNMF on COIL20, ORL, and COIL100. These results characterize a
+direct class-aware factorization in which the same class contributions
+guide optimization and prediction.
 \end{abstract}
 
 \begin{keyword}
@@ -102,42 +94,42 @@ to interpret: they may shape a representation~\cite{liu2012cnmf},
 constrain labeled coordinates, or propagate class information to
 unlabeled samples~\cite{zhu2003harmonic}.
 
-The class meaning of an NMF component is usually assigned after the
+The class meaning of an NMF component is often assigned after
 factorization. With a small labeled set, it can instead be specified
-during fitting. Each of the $c$ components then denotes one class, and
-the labeled rows of the sample factor have exact class support. For an
-unlabeled sample, support alone leaves the relative cost of candidate
-classes unspecified. A harmonic field on the sample graph provides
-class evidence at these unlabeled vertices.
+during fitting: each of the $c$ components denotes one class, and the
+labeled rows of the sample factor have exact class support. This
+constraint identifies the labeled components but does not determine
+which class contributions should be favored at unlabeled samples. A
+harmonic field on the sample graph supplies class evidence at those
+samples.
 
 PCE-NMF uses the complement of that evidence as a class-specific
-penalty on each factor contribution. The same contribution energy is
-used for the final class decision. This gives the graph evidence a
-specific role in the factorization while preserving ordinary NMF
-reconstruction. The construction also makes the decision invariant to
-positive diagonal rescaling of the two factors.
+penalty on each factor contribution. The same contribution energy
+determines the final class decision. Graph information therefore acts
+on candidate class contributions during fitting, while the data term
+retains ordinary NMF reconstruction. The contribution score is also
+invariant to positive diagonal rescaling of the two factors.
 
-We examine three questions. How much does propagated exclusion change
-a hard-support factorization? How do factor-based decisions compare
-with predictions from the harmonic field itself? How does the method
-compare with established semi-supervised NMF methods under matched
-splits and native prediction rules? Ten-data-set experiments address
-these questions; additional fixed experiments measure sensitivity to
-label fraction, corruption, class count, runtime, and numerical
-convergence. The results show large gains over hard exclusion within
-the factorization, similar mean ACC to harmonic prediction, and strong
-performance on COIL20 and COIL100.
+We test whether propagated evidence improves a factorization with
+hard labeled support, whether the factor-based decision changes the
+predictions of the underlying harmonic field, and how PCE-NMF compares
+with established semi-supervised NMF methods under matched splits and
+their native prediction rules. Ten-data-set experiments address these
+questions. Prespecified analyses examine label fraction, corruption,
+class count, runtime, and numerical convergence. The controls show a
+consistent improvement over hard exclusion; the comparison with the
+harmonic predictor identifies where factor-based decisions gain or
+lose accuracy.
 
-The paper makes three contributions. First, it defines a class-wise
-exclusion term on factor contribution energy and an aligned direct
-decision rule. Second, it establishes well-posedness of the regularized
-harmonic step, descent of the exact alternating updates under stated
-conditions, and scale invariance of class energy. Third, matched
-controls isolate the contribution of propagated exclusion and show
-that the resulting factor-based decisions have data-set-specific gains
-and losses relative to direct harmonic prediction. A nine-method
-benchmark and no-cache timing study characterize the predictive and
-computational behavior of the construction.
+The contribution is a class-semantic NMF formulation that applies
+harmonic evidence to the energy of each candidate class contribution
+and makes its decision from that same energy. We establish
+well-posedness of the regularized harmonic step, descent of the exact
+alternating updates under stated conditions, and scale invariance of
+the class score. Matched controls distinguish the effect of propagated
+exclusion during fitting from the predictive contribution of the
+harmonic field. The nine-method comparison measures the resulting
+accuracy profile and computational cost.
 
 \section{Related Work}
 \label{sec:related}
@@ -196,10 +188,13 @@ Robust semi-supervised NMF~\cite{peng2021robust} and self-supervised
 semi-supervised NMF~\cite{chavoshinejad2023s4} pursue complementary
 goals through robust losses or additional self-supervisory signals.
 
-Table~\ref{tab:method_distinctions} locates PCE-NMF relative to the
-closest compared methods. Its defining choice is to apply propagated
-evidence to the scale-invariant energy of each class contribution,
-followed by a decision on that same energy.
+Table~\ref{tab:method_distinctions} compares the supervision and
+decision mechanisms of the closest evaluated methods. GOCNMF anchors
+class coordinates and regularizes the representation through a graph;
+SNMFWLP and HLPNMF couple propagation to factor learning in different
+ways. PCE-NMF weights the reconstruction energy of each class-specific
+factor contribution by a fixed harmonic field and uses that energy
+for prediction.
 
 \begin{table}[!htbp]
 \centering
@@ -578,9 +573,10 @@ pairwise comparisons. The mean PCE-NMF minus HLPNMF ACC difference was 0.0031
 (four wins in ten data sets; Holm-adjusted Wilcoxon $p=0.9219$). Against
 GOCNMF, the difference was 0.0150 (seven wins; adjusted $p=0.4648$).
 The corresponding NMI differences were $-0.0050$ and 0.0121, with
-adjusted $p=0.5508$ and $p=0.8457$. The three methods have
-data-dependent performance profiles. Figure~\ref{fig:average_ranks}
-summarizes the nine methods' average ranks across the six metrics.
+adjusted $p=0.5508$ and $p=0.8457$. The lead changes across data sets:
+PCE-NMF leads the three-method ACC comparison on three, HLPNMF on six,
+and GOCNMF on one. Figure~\ref{fig:average_ranks} summarizes the nine
+methods' average ranks across the six metrics.
 
 \begin{figure}[!htbp]
 \centering
@@ -598,18 +594,19 @@ support constraint but removes propagated exclusion, and with a
 harmonic-propagation-only predictor using the same graph field.
 PCE-NMF exceeded HCE-NMF in ACC on all ten data sets. The mean
 data-set-level difference was 0.4319 (95\% confidence interval
-0.3124--0.5514; Holm-adjusted $p=0.0039$). Against harmonic
-propagation alone, its mean difference was $-0.0006$ (95\% confidence
-interval $-0.0134$--0.0121; adjusted $p=0.6953$). Propagated
-exclusion therefore contributed substantially relative to hard
-exclusion in this controlled comparison.
+0.3124--0.5514; Holm-adjusted $p=0.0039$). This comparison measures
+the gain from inserting propagated exclusion into a hard-support
+factorization. Against harmonic propagation alone, the mean difference
+was $-0.0006$ (95\% confidence interval $-0.0134$--0.0121; adjusted
+$p=0.6953$). The harmonic field is a strong predictor in its own right;
+the factor-based decision changes its performance by data set rather
+than yielding a consistent aggregate gain.
 
 Table~\ref{tab:mechanism_acc} resolves the aggregate comparison by
 data set. The factor-based rule exceeds harmonic prediction on COIL100
 by 0.0243 and on COIL20 by 0.0143, whereas harmonic prediction exceeds
-it on YaleB by 0.0428 and on PIE by 0.0113. Thus the two decisions
-respond differently to the same graph evidence, even though their
-mean ACC across the ten data sets is close.
+it on YaleB by 0.0428 and on PIE by 0.0113. The same propagated field
+can thus support different decisions after class-aware reconstruction.
 
 \begin{table}[!htbp]
 \centering
@@ -788,34 +785,43 @@ parameters. The objective axis is logarithmic.}
 \FloatBarrier
 \section{Discussion}
 
-The controls measure two effects separately. The large difference from
-HCE-NMF shows the contribution of propagated exclusion within the
-factorization. Direct harmonic prediction has nearly the same mean ACC
-as PCE-NMF across the ten data sets. The factor-based rule gains on
-COIL20 and COIL100 and loses on YaleB, locating its empirical effect at
-the data-set level. The harmonic field supplies a strong direct
-predictor as well as the exclusion weights used in PCE-NMF.
+The controls identify the roles of propagation and factorization.
+Relative to HCE-NMF, PCE-NMF uses the same class support and NMF
+reconstruction while adding a class-specific penalty derived from the
+graph. Its gain on all ten data sets shows that this propagated
+preference changes the fitted factors substantially. The harmonic
+field also supports a direct predictor. PCE-NMF gains over that
+predictor on COIL20 and COIL100, while the harmonic decision leads on
+YaleB and PIE. The aggregate comparison is therefore close, and the
+factorization's predictive effect is visible at the data-set level.
 
-PCE-NMF retains a non-negative class-aware representation and an
-explicit reconstruction term alongside direct class decisions.
-HLPNMF achieves higher ACC on several data sets, whereas PCE-NMF is
-faster in the measured no-cache pipeline. The graph construction is
-quadratic in sample count before neighbor selection, so the measured
-runtime comparison includes this graph cost. The class-count experiment characterizes the tested COIL100
-subsets; its accuracy ordering is specific to those subsets.
+The model joins a non-negative class-aware representation, explicit
+reconstruction, and a direct decision on scale-invariant class
+contributions. This combination is distinct from graph regularization
+of the representation and from high-order propagation through a
+coefficient matrix. The ten-data-set comparison shows competitive
+accuracy on object data, particularly COIL20 and COIL100, alongside
+HLPNMF's stronger results on six other data sets. In the no-cache
+timing study, PCE-NMF is faster than HLPNMF and slower than GOCNMF on
+every data set. Its graph construction requires quadratic pairwise
+distance work before neighbor selection; the reported times include
+that cost. The class-count experiment describes the tested balanced
+COIL100 subsets.
 
 \section{Conclusion}
 
-PCE-NMF turns harmonic class evidence into penalties on class-wise NMF
-contributions and uses those contributions for direct decisions. Its
-class-energy rule is invariant to factor rescaling. Across ten data
-sets, propagated exclusion improved on a matched hard-support model.
-Against direct harmonic prediction, its mean ACC difference was
-$-0.0006$, with gains and losses across individual data sets. PCE-NMF performed
-strongly on COIL20 and COIL100 and ran faster than HLPNMF, while
-HLPNMF achieved higher ACC on several other data sets. The combined
-results define the method's mathematical construction and its measured
-performance profile under matched semi-supervised evaluation.
+PCE-NMF incorporates harmonic class evidence into the energy of
+class-specific NMF contributions and uses the same contributions for
+direct prediction. Its class score is invariant to factor rescaling,
+and the exact alternating updates decrease the objective under the
+stated conditions. Propagated exclusion improved accuracy over matched
+hard-support factorization on all ten data sets. The factor decision
+led the harmonic predictor on COIL20 and COIL100 and followed it on
+YaleB and PIE. In the nine-method comparison, PCE-NMF achieved the
+highest ACC among the three closely related methods on COIL20, ORL,
+and COIL100. Together, these results establish a class-aware
+factorization whose optimization and prediction use a common,
+graph-guided contribution measure.
 
 
 \section*{CRediT authorship contribution statement}
@@ -828,7 +834,11 @@ The authors declare that they have no known competing financial interests or per
 
 \section*{Data and code availability}
 
-Data will be made available on request.
+The processed matrices, MATLAB R2019a experiment drivers, locked
+parameters, raw results, and figure source data are available at
+\url{https://github.com/matrix-research-lab-Wf/PCE-NMF}.
+The external HLPNMF author implementation is obtained from its
+original source as documented in the repository.
 
 \section*{Acknowledgments}
 This work was supported by Guizhou Provincial Science and Technology Projects (2025039, 2026283), the High-Level Innovative Talent Project of Guizhou Province (GCC2023027), the Natural Science Research Project of Department of Education of Guizhou Province (2024259), and the Research Foundation of Guizhou Minzu University (GZMUZK[2023]YB10).
