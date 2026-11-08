@@ -13,7 +13,7 @@ The paper uses 20 paired formal runs, six clustering metrics on unlabeled sample
 
 ## Data and external code
 
-The image datasets and third-party implementations are not redistributed. See [dataset preparation](docs/DATASETS.md) and [method provenance](docs/THIRD_PARTY_METHODS.md). The repository includes the recorded outputs needed to inspect every reported result. Re-running the full nine-method benchmark requires the original data and the HLPNMF author implementation; the released adapters and protocol specify the remaining method calls.
+The ten audited data matrices used in the formal comparison are in [`data/`](data/), with file hashes and matrix identities in [dataset preparation](docs/DATASETS.md). See [method provenance](docs/THIRD_PARTY_METHODS.md) for external implementations. The repository also includes the recorded outputs needed to inspect every reported result. Re-running the full nine-method benchmark requires the HLPNMF author implementation; the released adapters and protocol specify the remaining method calls.
 
 ## Quick start
 
